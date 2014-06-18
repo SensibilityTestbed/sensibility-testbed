@@ -1,0 +1,6 @@
+
+    <menu xmlns:android="http://schemas.android.com/apk/res/android">
+        <item android:title="@string/view_log" android:icon="@drawable/ic_menu_view" android:id="@+id/view_log_button"></item>
+        <item android:title="@string/uninstall_seattle" android:icon="@drawable/ic_menu_delete" android:id="@+id/uninstall_seattle_button"></item>
+        <item android:title="@string/about" android:icon="@drawable/ic_menu_help" android:id="@+id/view_about_button"></item>
+    </menu>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent"
+	android:fillViewport="true" >
+	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+		android:orientation="vertical"
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent">
+		<ToggleButton android:textOn="@string/toggleon" android:textOff="@string/toggleoff" android:id="@+id/toggleStatus" android:layout_width="fill_parent" android:layout_height="70dp"></ToggleButton>
+
+		<CheckBox
+		    android:id="@+id/checkBoxAutostart"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:linksClickable="true"
+		    android:text="@string/autostart"
+		    android:checked="true"></CheckBox>
+		
+		<TextView
+		    android:id="@+id/sensorlink"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:text="Note: Installing a sensor can provide a richer Seattle experience."
+		    android:textAppearance="?android:attr/textAppearanceMedium"
+		    android:textSize="15sp" />
+
+	</LinearLayout>
+</ScrollView>

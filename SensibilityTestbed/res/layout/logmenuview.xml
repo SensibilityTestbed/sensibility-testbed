@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent"
+	android:fillViewport="true" >
+	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+		android:orientation="vertical"
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent">
+		<TextView android:layout_width="wrap_content" android:textAppearance="?android:attr/textAppearanceMedium" android:layout_height="wrap_content" android:text="@string/availablelogs"/>
+		<View android:layout_height="1px" android:layout_width="fill_parent" android:background="#DDFFDD" android:layout_marginLeft="3dip" android:layout_marginRight="3dip" android:layout_marginTop="5dip" android:layout_marginBottom="5dip"/>
+		<ListView android:id="@+id/listView1" android:layout_height="wrap_content" android:layout_width="fill_parent"/>
+	</LinearLayout>
+</ScrollView>
