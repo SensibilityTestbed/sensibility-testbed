@@ -28,17 +28,23 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.logging.Level;
 
 import android.app.Activity;
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningServiceInfo;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.ResolveInfo;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.net.Uri;
@@ -745,7 +751,30 @@ public class ScriptActivity extends Activity {
 		}
 		Log.i(Common.LOG_TAG, Common.LOG_INFO_PYTHON_UNZIP_COMPLETED);
 	}
+	
 
+	// check if an app is installed, thanks to 
+	// http://www.grokkingandroid.com/checking-intent-availability/
+	public static boolean isMyServiceInstalled(Context ctx, Intent intent) {
+		final PackageManager mgr = ctx.getPackageManager();
+		List<ResolveInfo> list = mgr.queryIntentActivities(intent, 
+				            PackageManager.MATCH_DEFAULT_ONLY);
+		return list.size() > 0;
+	}
+	
+	// check if sl4a is running thanks to: 
+	// http://stackoverflow.com/questions/7440473/android-how-to-check-if-the-intent-service-is-still-running-or-has-stopped-runni
+	private boolean isMyServiceRunning() {
+	    ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+	    for (RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+	        if ("com.googlecode.android_scripting.activity.ScriptingLayerService".equals(service.service.getClassName())) {
+	            return true;
+	        }
+	    }
+	    return false;
+	}
+	
+	
 	// Executed after the activity is started / resumed
 	@Override
 	protected void onStart() {
@@ -777,7 +806,10 @@ public class ScriptActivity extends Activity {
 			sl4aIntent.setAction(Constants.ACTION_LAUNCH_SERVER);
 			sl4aIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			// XXX How good an idea is hardcoding the listen port?
-			sl4aIntent.putExtra(Constants.EXTRA_USE_SERVICE_PORT, 45678);
+			sl4aIntent.putExtra(Constants.EXTRA_USE_SERVICE_PORT, 45678);			
+
+			if (!isMyServiceRunning()){
+				Log.v(Common.LOG_TAG, "sl4a has not yet started!!");
 			try {
 				startActivity(sl4aIntent); // NOT startService! D'oh!
 			} catch (Exception e) {
@@ -839,6 +871,10 @@ public class ScriptActivity extends Activity {
 									+ e3.toString());
 				} // Done with SL4A! install
 				
+			}
+			}
+			else{
+				Log.v(Common.LOG_TAG, "sl4a has started already!!");
 			}
 
 			File pythonBinary = new File(this.getFilesDir().getAbsolutePath() + 
