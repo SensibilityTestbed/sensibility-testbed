@@ -23,9 +23,11 @@ import java.util.List;
 import java.util.Map;
 import java.net.InetSocketAddress;
 
+import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.app.ActivityManager.RunningServiceInfo;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -336,6 +338,18 @@ public class ScriptService extends ForegroundService {
 			seattlemainProcess.kill();
 		}
 	}
+	
+	// check if sl4a is running thanks to: 
+	// http://stackoverflow.com/questions/7440473/android-how-to-check-if-the-intent-service-is-still-running-or-has-stopped-runni
+	private boolean isMyServiceRunning() {
+		ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+		for (RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+			if ("com.googlecode.android_scripting.activity.ScriptingLayerService".equals(service.service.getClassName())) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	// executed after each startService() call
 	@Override
@@ -375,8 +389,21 @@ public class ScriptService extends ForegroundService {
 		sl4aIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		// XXX How good an idea is hardcoding the listen port?
 		sl4aIntent.putExtra(Constants.EXTRA_USE_SERVICE_PORT, 45678);
-		startActivity(sl4aIntent);  // NOT startService! D'oh!
-		Log.v(Common.LOG_TAG, "Started SL4A. Let's hope for the best.");
+		
+		if (!isMyServiceRunning()){
+			Log.i(Common.LOG_TAG, "SL4A has not yet started!!");
+
+			try {
+				startActivity(sl4aIntent); // NOT startService! D'oh!
+				Log.i(Common.LOG_TAG, "Started SL4A. Let's hope for the best.");
+			} catch (Exception e) {
+				Log.e(Common.LOG_TAG, "Trying to start SL4A failed. Original error: "
+						+ e.toString());			
+			}
+		}
+		else{
+			Log.i(Common.LOG_TAG, "SL4A has started already!!");
+		}
 	}
 
 	// Create notification icon
