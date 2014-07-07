@@ -6,10 +6,14 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import android.os.Environment;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.util.Log;
 
 import com.googlecode.android_scripting.FileUtils;
@@ -149,4 +153,14 @@ public class Utils {
 			Log.e(Common.LOG_TAG, "createDirectoryOnExternalStorage error: "+ e);
 		}
 	}
+	
+	// check if an app is installed, thanks to 
+	// http://www.grokkingandroid.com/checking-intent-availability/
+	public static boolean isMyServiceInstalled(Context ctx, Intent intent) {
+		final PackageManager mgr = ctx.getPackageManager();
+		List<ResolveInfo> list = mgr.queryIntentActivities(intent, 
+				PackageManager.MATCH_DEFAULT_ONLY);
+		return list.size() > 0;
+	}
+
 }
