@@ -409,7 +409,7 @@ public class ScriptService extends ForegroundService {
 	// Create notification icon
 	@Override
 	protected Notification createNotification() {
-		Notification notification = new Notification(R.drawable.seattlelogo,
+		Notification notification = new Notification(R.drawable.ic_launcher,
 				this.getString(R.string.loading), System.currentTimeMillis());
 
 		// set OnClick intent
