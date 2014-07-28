@@ -113,6 +113,7 @@ public class ScriptActivity extends Activity {
 	// Workaround -- status toggle-button could be set incorrectly right after
 	// installation
 	private static boolean autostartedAfterInstallation = false;
+	public static boolean isSeattleInstalled = false;
 
 	// This is initialized by the onStart() method.  It needs to be static
 	// as it is referred to in a lot of different classes.  This should be fine
@@ -783,6 +784,10 @@ public class ScriptActivity extends Activity {
 		settings = getSharedPreferences(SEATTLE_PREFERENCES,
 				MODE_WORLD_WRITEABLE);
 		seattleInstallDirectory = getExternalFilesDir(null);
+		
+		isSeattleInstalled = (new File(ScriptActivity.getSeattlePath() + "seattle_repy/",
+				"nmmain.py")).exists(); // calling isSeattleInstalled() will NOT work...
+		
 		Log.v(Common.LOG_TAG, "Application files will be placed in: " +
 			seattleInstallDirectory.getAbsolutePath());
 
