@@ -60,6 +60,8 @@ import com.sensibilitytestbed.process.SeattleScriptProcess;
 public class ScriptService extends ForegroundService {
 	private final static int NOTIFICATION_ID = NotificationIdFactory.create();
 	private final IBinder mBinder;
+	
+	//private String AbsolutePath = "/mnt/sdcard/Android/data/com.sensibilitytestbed/files";
 
 	AndroidProxy mProxy;
 
@@ -158,7 +160,7 @@ public class ScriptService extends ForegroundService {
 
 		// Get updater script file
 		File updater = new File(ScriptActivity.seattleInstallDirectory
-				.getAbsolutePath()
+         				.getAbsolutePath()//AbsolutePath
 				+ "/sl4a/seattle/seattle_repy/softwareupdater.py");
 
 		List<String> args = new ArrayList<String>();
@@ -191,14 +193,14 @@ public class ScriptService extends ForegroundService {
 		env.put("SEATTLE_RUN_SOFTWAREUPDATER_IN_FOREGROUND", "True");
 
 		// 2.7 set python environmental variables
-		env.put("PYTHONPATH", ScriptActivity.seattleInstallDirectory.getAbsolutePath() + 
+		env.put("PYTHONPATH", ScriptActivity.seattleInstallDirectory.getAbsolutePath() + //AbsolutePath + 
 				"/extras/python" +
 				":" + this.getFilesDir().getAbsolutePath() +  
 				"/python/lib/python2.7/lib-dynload" 
 				+ ":" + this.getFilesDir().getAbsolutePath() +
 				"/python/lib/python2.7");
 
-		env.put("TEMP", ScriptActivity.seattleInstallDirectory.getAbsolutePath() + 
+		env.put("TEMP", ScriptActivity.seattleInstallDirectory.getAbsolutePath() + //AbsolutePath + 
 				"/extras/tmp");
 
 		env.put("PYTHONHOME", this.getFilesDir().getAbsolutePath() + "/python");
@@ -260,6 +262,8 @@ public class ScriptService extends ForegroundService {
 		// Get nodemanager script file
 		File seattlemain = new File(ScriptActivity.seattleInstallDirectory
 				.getAbsolutePath() + "/sl4a/seattle/seattle_repy/nmmain.py");
+		
+		//File seattlemain = new File(AbsolutePath + "/sl4a/seattle/seattle_repy/nmmain.py");
 
 		// Set arguments
 		List<String> args = new ArrayList<String>();
@@ -274,7 +278,7 @@ public class ScriptService extends ForegroundService {
 		environmentVariables = new HashMap<String, String>();
 
 		// set python 2.7 environmental variables to pass to interpreter
-		environmentVariables.put("PYTHONPATH",
+		environmentVariables.put("PYTHONPATH", 
 				ScriptActivity.seattleInstallDirectory.getAbsolutePath() + "/extras/python" + 
 				":"	+ this.getFilesDir().getAbsolutePath() + "/python/lib/python2.7/lib-dynload" + 
 				":"	+ this.getFilesDir().getAbsolutePath() + "/python/lib/python2.7");
