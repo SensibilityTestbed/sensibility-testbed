@@ -814,65 +814,8 @@ public class ScriptActivity extends Activity {
 			sl4aIntent.putExtra(Constants.EXTRA_USE_SERVICE_PORT, 45678);		
 			
 			if(!Utils.isMyServiceInstalled(getBaseContext(), sl4aIntent)) {
-
-				Log.i(Common.LOG_TAG, "SL4A is not installed. I'll go install it now.");
-				// Install SL4A
-				// Since the required APK is included in res/raw, just announce
-				// an intent to have it installed.
-				// Loosely based on
-				// http://stackoverflow.com/questions/11727237/programatically-install-apk-file-located-in-res-raw
-				// Thank you!
-				try {
-					Log.i(Common.LOG_TAG, "Trying to install SL4A...");
-					AssetManager assetManager = getAssets();
-					InputStream in = null;
-					OutputStream out = null;
-					try {
-						Log.v(Common.LOG_TAG, "Starting file copying...");
-						String baseFileName = "sl4a_r6.apk";
-						String assetFileName = "raw/" + baseFileName;
-						String savedFileName = ScriptActivity.seattleInstallDirectory + 
-								"/" + baseFileName;
-						in = assetManager.open(assetFileName);
-						out = new FileOutputStream(savedFileName);
-						byte[] buffer = new byte[1024];
-						int read;
-						while ((read = in.read(buffer)) != -1) {
-							out.write(buffer, 0, read);
-						}
-						Log.v(Common.LOG_TAG, "File should be in dir now: "
-								+ savedFileName);
-						in.close();
-						in = null;
-						out.flush();
-						out.close();
-						out = null;
-						Log.v(Common.LOG_TAG,
-								"About to voice SL4A install intent...");
-						Intent sl4aInstallIntent = new Intent(
-								Intent.ACTION_VIEW);
-						sl4aInstallIntent.setDataAndType(
-								Uri.fromFile(new File(savedFileName)),
-								"application/vnd.android.package-archive");
-						sl4aInstallIntent
-								.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-						startActivity(sl4aInstallIntent);
-						Log.v(Common.LOG_TAG,
-								"Raised SL4A install intent, let's see what happens...");
-						
-					} catch (Exception e2) {
-						// deal with copying problem
-						Log.e(Common.LOG_TAG,
-								"SL4A install failed with " + e2.toString());
-					}
-
-				} catch (Exception e3) {
-					Log.e(Common.LOG_TAG,
-							"I'm sorry, installing the SL4A apk from assets/raw failed. Error: "
-									+ e3.toString());
-				} // Done with SL4A install
-			}
-			else{
+				Log.i(Common.LOG_TAG, "SL4A is not installed. Too bad! Hope the user goes and installs it some day so we can access sensors.");
+			} else {
 				// sl4a is installed. now check if it is running
 				if (!isMyServiceRunning()){
 					Log.i(Common.LOG_TAG, "SL4A has not yet started!!");
