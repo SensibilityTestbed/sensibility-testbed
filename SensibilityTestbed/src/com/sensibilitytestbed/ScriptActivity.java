@@ -52,6 +52,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -70,6 +71,7 @@ import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.googlecode.android_scripting.Constants;
@@ -815,6 +817,16 @@ public class ScriptActivity extends Activity {
 			
 			if(!Utils.isMyServiceInstalled(getBaseContext(), sl4aIntent)) {
 				Log.i(Common.LOG_TAG, "SL4A is not installed. Too bad! Hope the user goes and installs it some day so we can access sensors.");
+				
+				Context context = getApplicationContext();
+				CharSequence text = "SL4A is not installed. Please install it from https://code.google.com/p/android-scripting/";
+				
+				int duration = Toast.LENGTH_LONG;
+				Toast toast = Toast.makeText(context, text, duration);
+				toast.show();
+				SystemClock.sleep(3000);
+				
+				android.os.Process.killProcess(android.os.Process.myPid());
 			} else {
 				// sl4a is installed. now check if it is running
 				if (!isMyServiceRunning()){
