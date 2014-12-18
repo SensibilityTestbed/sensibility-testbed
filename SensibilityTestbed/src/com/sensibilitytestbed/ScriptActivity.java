@@ -824,70 +824,69 @@ public class ScriptActivity extends Activity {
 				int duration = Toast.LENGTH_LONG;
 				Toast toast = Toast.makeText(context, text, duration);
 				toast.show();
-				SystemClock.sleep(3000);
+				SystemClock.sleep(2000);
 				
-				android.os.Process.killProcess(android.os.Process.myPid());
-			} else {
+				finish();  // hide the current UI, not killing the app
+			} 
+			else {
 				// sl4a is installed. now check if it is running
 				if (!isMyServiceRunning()){
 					Log.i(Common.LOG_TAG, "SL4A has not yet started!!");
-					
+
 					try {
 						startActivity(sl4aIntent); // NOT startService! D'oh!
 						Log.i(Common.LOG_TAG, "SL4A started, yay!!");
 					} catch (Exception e) {
 						Log.e(Common.LOG_TAG, "Trying to start SL4A failed. Original error: "
-										+ e.toString());			
+								+ e.toString());			
 					}
 				}
 				else{
 					Log.i(Common.LOG_TAG, "SL4A has started already!!");
 				}
+
+				File pythonBinary = new File(this.getFilesDir().getAbsolutePath() + 
+						"/python/bin/python");
+				// Check if python is installed
+				if (!pythonBinary.exists()) {
+					Log.e(Common.LOG_TAG,
+							Common.LOG_EXCEPTION_NO_PYTHON_INTERPRETER);
+					// Setup dialog to display when python unpacking is complete
+					final Builder pythonComplete = new AlertDialog.Builder(this)
+					.setMessage("Python unpack complete!")
+					.setNeutralButton("OK",
+							new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog,
+								int which) {
+						}
+					});
+					// Setup and display python unpacking progress dialog
+					preparePythonProgress();
+					new Thread(new Runnable() {
+						@Override
+						public void run() {
+							// Python binary was not found -> install python
+							copyPythonToLocal();
+							runOnUiThread(new Runnable() {
+								@Override
+								public void run() {
+									// Python unpacking finished so kill the
+									// displayed progress bar
+									pythonProgress.dismiss();
+									// Show dialogue confirming python unpacking
+									// success
+									pythonComplete.create().show();
+								}
+							});
+						}
+					}).start();
+				}
+				// Python installation found
+
+				// Python and SL4A installer -> Show main layout
+				showFrontendLayout();
 			}
-			
-
-
-			File pythonBinary = new File(this.getFilesDir().getAbsolutePath() + 
-					"/python/bin/python");
-			// Check if python is installed
-			if (!pythonBinary.exists()) {
-				Log.e(Common.LOG_TAG,
-						Common.LOG_EXCEPTION_NO_PYTHON_INTERPRETER);
-				// Setup dialog to display when python unpacking is complete
-				final Builder pythonComplete = new AlertDialog.Builder(this)
-						.setMessage("Python unpack complete!")
-						.setNeutralButton("OK",
-								new DialogInterface.OnClickListener() {
-									@Override
-									public void onClick(DialogInterface dialog,
-											int which) {
-									}
-								});
-				// Setup and display python unpacking progress dialog
-				preparePythonProgress();
-				new Thread(new Runnable() {
-					@Override
-					public void run() {
-						// Python binary was not found -> install python
-						copyPythonToLocal();
-						runOnUiThread(new Runnable() {
-							@Override
-							public void run() {
-								// Python unpacking finished so kill the
-								// displayed progress bar
-								pythonProgress.dismiss();
-								// Show dialogue confirming python unpacking
-								// success
-								pythonComplete.create().show();
-							}
-						});
-					}
-				}).start();
-			}
-			// Python installation found
-
-			// Python and SL4A installer -> Show main layout
-			showFrontendLayout();
 		}
 	}
 
