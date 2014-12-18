@@ -817,16 +817,21 @@ public class ScriptActivity extends Activity {
 			
 			if(!Utils.isMyServiceInstalled(getBaseContext(), sl4aIntent)) {
 				Log.i(Common.LOG_TAG, "SL4A is not installed. Too bad! Hope the user goes and installs it some day so we can access sensors.");
-				
-				Context context = getApplicationContext();
 				CharSequence text = "SL4A is not installed. Please install it from https://code.google.com/p/android-scripting/";
 				
-				int duration = Toast.LENGTH_LONG;
-				Toast toast = Toast.makeText(context, text, duration);
-				toast.show();
-				SystemClock.sleep(2000);
+				final Builder sl4aNotFound = new AlertDialog.Builder(this)
+				.setMessage(text)
+				.setNeutralButton("OK",
+						new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog,
+							int which) {
+						// if sl4a is not installed, exit the app
+						android.os.Process.killProcess(android.os.Process.myPid());
+					}
+				});
+				sl4aNotFound.create().show();
 				
-				finish();  // hide the current UI, not killing the app
 			} 
 			else {
 				// sl4a is installed. now check if it is running
