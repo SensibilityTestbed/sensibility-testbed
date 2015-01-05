@@ -28,17 +28,23 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.logging.Level;
 
 import android.app.Activity;
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningServiceInfo;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.ResolveInfo;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.net.Uri;
@@ -107,6 +113,7 @@ public class ScriptActivity extends Activity {
 	// Workaround -- status toggle-button could be set incorrectly right after
 	// installation
 	private static boolean autostartedAfterInstallation = false;
+	public static boolean isSeattleInstalled = false;
 
 	// This is initialized by the onStart() method.  It needs to be static
 	// as it is referred to in a lot of different classes.  This should be fine
@@ -745,7 +752,30 @@ public class ScriptActivity extends Activity {
 		}
 		Log.i(Common.LOG_TAG, Common.LOG_INFO_PYTHON_UNZIP_COMPLETED);
 	}
+	
 
+	/*// check if an app is installed, thanks to 
+	// http://www.grokkingandroid.com/checking-intent-availability/
+	public static boolean isMyServiceInstalled(Context ctx, Intent intent) {
+		final PackageManager mgr = ctx.getPackageManager();
+		List<ResolveInfo> list = mgr.queryIntentActivities(intent, 
+				            PackageManager.MATCH_DEFAULT_ONLY);
+		return list.size() > 0;
+	}*/
+	
+	// check if sl4a is running thanks to: 
+	// http://stackoverflow.com/questions/7440473/android-how-to-check-if-the-intent-service-is-still-running-or-has-stopped-runni
+	private boolean isMyServiceRunning() {
+	    ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+	    for (RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+	        if ("com.googlecode.android_scripting.activity.ScriptingLayerService".equals(service.service.getClassName())) {
+	            return true;
+	        }
+	    }
+	    return false;
+	}
+	
+	
 	// Executed after the activity is started / resumed
 	@Override
 	protected void onStart() {
@@ -754,6 +784,10 @@ public class ScriptActivity extends Activity {
 		settings = getSharedPreferences(SEATTLE_PREFERENCES,
 				MODE_WORLD_WRITEABLE);
 		seattleInstallDirectory = getExternalFilesDir(null);
+		
+		isSeattleInstalled = (new File(ScriptActivity.getSeattlePath() + "seattle_repy/",
+				"nmmain.py")).exists(); // calling isSeattleInstalled() will NOT work...
+		
 		Log.v(Common.LOG_TAG, "Application files will be placed in: " +
 			seattleInstallDirectory.getAbsolutePath());
 
@@ -765,7 +799,7 @@ public class ScriptActivity extends Activity {
 			// Let's try SL4A!
 			// Start SL4A
 			// XXX Repeat of code in ScriptService.java!
-			Log.v(Common.LOG_TAG, "Trying to start SL4A....");
+			Log.v(Common.LOG_TAG, "Creating SL4A Intent....");
 			Intent sl4aIntent = new Intent();
 			// Thank you,
 			// http://stackoverflow.com/questions/6829187/android-explicit-intent-with-target-component
@@ -777,13 +811,11 @@ public class ScriptActivity extends Activity {
 			sl4aIntent.setAction(Constants.ACTION_LAUNCH_SERVER);
 			sl4aIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			// XXX How good an idea is hardcoding the listen port?
-			sl4aIntent.putExtra(Constants.EXTRA_USE_SERVICE_PORT, 45678);
-			try {
-				startActivity(sl4aIntent); // NOT startService! D'oh!
-			} catch (Exception e) {
-				Log.e(Common.LOG_TAG,
-						"Trying to start up SL4A failed. I'll go install it now. Original error: "
-								+ e.toString());
+			sl4aIntent.putExtra(Constants.EXTRA_USE_SERVICE_PORT, 45678);		
+			
+			if(!Utils.isMyServiceInstalled(getBaseContext(), sl4aIntent)) {
+
+				Log.i(Common.LOG_TAG, "SL4A is not installed. I'll go install it now.");
 				// Install SL4A
 				// Since the required APK is included in res/raw, just announce
 				// an intent to have it installed.
@@ -827,6 +859,7 @@ public class ScriptActivity extends Activity {
 						startActivity(sl4aInstallIntent);
 						Log.v(Common.LOG_TAG,
 								"Raised SL4A install intent, let's see what happens...");
+						
 					} catch (Exception e2) {
 						// deal with copying problem
 						Log.e(Common.LOG_TAG,
@@ -837,9 +870,27 @@ public class ScriptActivity extends Activity {
 					Log.e(Common.LOG_TAG,
 							"I'm sorry, installing the SL4A apk from assets/raw failed. Error: "
 									+ e3.toString());
-				} // Done with SL4A! install
-				
+				} // Done with SL4A install
 			}
+			else{
+				// sl4a is installed. now check if it is running
+				if (!isMyServiceRunning()){
+					Log.i(Common.LOG_TAG, "SL4A has not yet started!!");
+					
+					try {
+						startActivity(sl4aIntent); // NOT startService! D'oh!
+						Log.i(Common.LOG_TAG, "SL4A started, yay!!");
+					} catch (Exception e) {
+						Log.e(Common.LOG_TAG, "Trying to start SL4A failed. Original error: "
+										+ e.toString());			
+					}
+				}
+				else{
+					Log.i(Common.LOG_TAG, "SL4A has started already!!");
+				}
+			}
+			
+
 
 			File pythonBinary = new File(this.getFilesDir().getAbsolutePath() + 
 					"/python/bin/python");

@@ -122,8 +122,8 @@ public class Process {
     }
 
     String binaryPath = mBinary.getAbsolutePath();
-    Log.v(Common.LOG_TAG, "Executing " + binaryPath + " with arguments " + mArguments + " and with environment "
-        + mEnvironment.toString());
+/*    Log.v(Common.LOG_TAG, "Executing " + binaryPath + " with arguments " + mArguments + " and with environment "
+        + mEnvironment.toString());*/
 
     int[] pid = new int[1];
     String[] argumentsArray = mArguments.toArray(new String[mArguments.size()]);

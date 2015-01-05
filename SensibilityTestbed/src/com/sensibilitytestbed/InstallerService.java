@@ -572,7 +572,7 @@ public class InstallerService extends ForegroundService {
 	@Override
 	protected Notification createNotification() {
 
-		Notification notification = new Notification(R.drawable.seattlelogo,
+		Notification notification = new Notification(R.drawable.ic_launcher,
 				this.getString(R.string.srvc_install_start),
 				System.currentTimeMillis());
 
