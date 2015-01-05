@@ -1,5 +1,3 @@
-SensibilityTestbed README
+This is the source repo for SensibilityTestbed (Android app).
 
----------------
-
-Bug fixes branch!
+See https://sensibilitytestbed.com/ for details
