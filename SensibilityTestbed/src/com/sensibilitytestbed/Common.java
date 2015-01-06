@@ -39,7 +39,7 @@ public final class Common {
 	public static final String LOG_EXCEPTION_UNZIPPING_FILE = "Exception occured while extracting archive: ";
 	public static final String LOG_EXCEPTION_UNZIPPING_ARCHIVE = "Exception occured while extracting file: ";
 	public static final String LOG_EXCEPTION_DOWNLOAD_UNKNOWN_ERROR = "Unknown exception occured during or before download";
-	public static final String LOG_EXCEPTION_UNTRUSTED_HOST = "Untrusted host (host not on whitelist)";
+	public static final String LOG_EXCEPTION_SSL_EXCEPTION = "SSL exception contacting the download site";
 
 	// Log -- Informative
 	public static final String LOG_INFO_SEATTLE_STARTED_AUTOMATICALLY = "Sensibility Testbed started automatically";

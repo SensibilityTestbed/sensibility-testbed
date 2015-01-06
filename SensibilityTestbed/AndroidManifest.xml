@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.sensibilitytestbed"
-    android:versionCode="10"
-    android:versionName="20141120-1200" >
+    android:versionCode="12"
+    android:versionName="20150105-1330CET" >
 
     <uses-sdk
-        android:minSdkVersion="8"
-        android:targetSdkVersion="19" />
+        android:minSdkVersion="9"
+        android:targetSdkVersion="20" />
     
 
     <application
