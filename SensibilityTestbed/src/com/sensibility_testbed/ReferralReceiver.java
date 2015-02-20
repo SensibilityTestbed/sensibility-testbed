@@ -1,4 +1,4 @@
-package com.sensibilitytestbed;
+package com.sensibility_testbed;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;

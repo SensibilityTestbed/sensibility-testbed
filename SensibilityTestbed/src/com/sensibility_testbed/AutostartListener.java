@@ -1,4 +1,4 @@
-package com.sensibilitytestbed;
+package com.sensibility_testbed;
 
 import java.io.File;
 
@@ -36,7 +36,7 @@ public class AutostartListener extends BroadcastReceiver {
 	    		// Check if the app is installed and is to be run on startup
 	    		if(isInstalled && settings.getBoolean(ScriptActivity.AUTOSTART_ON_BOOT,true)) {
 			    	  Intent serviceIntent = new Intent();
-			    	  serviceIntent.setAction("com.sensibilitytestbed.ScriptService");
+			    	  serviceIntent.setAction("com.sensibility_testbed.ScriptService");
 			    	  ScriptService.serviceInitiatedByUser = true;
 			    	  // Start the service
 					  Log.i(Common.LOG_TAG, Common.LOG_INFO_SEATTLE_STARTED_AUTOMATICALLY);

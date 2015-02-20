@@ -1,4 +1,4 @@
-package com.sensibilitytestbed;
+package com.sensibility_testbed;
 
 import com.googlecode.android_scripting.BaseApplication;
 import android.content.Context;

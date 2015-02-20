@@ -14,7 +14,7 @@
  * the License.
  */
 
-package com.sensibilitytestbed;
+package com.sensibility_testbed;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -733,7 +733,7 @@ public class ScriptActivity extends Activity {
 				content.reset();
 
 				// Python_27 we unpack to ->
-				// /data/data/com.sensibilitytestbed/files/python
+				// /data/data/com.sensibility_testbed/files/python
 				if (zipName.endsWith(Common.PYTHON_ZIP_NAME)) {
 					// This is the Python binary. It needs to live in /data/data/...., 
 					// as it can't be made executable on the SDcard due to VFAT.
@@ -743,7 +743,7 @@ public class ScriptActivity extends Activity {
 					FileUtils.chmod(new File(this.getFilesDir().getAbsolutePath() + "/python/bin/python"), 0755);
 				}
 				// Python_extras_27 we unpack to ->
-				// /sdcard/com.sensibilitytestbed/extras/python
+				// /sdcard/com.sensibility_testbed/extras/python
 				else if (zipName.endsWith(Common.PYTHON_EXTRAS_ZIP_NAME)) {
 					Utils.unzip(content, seattleInstallDirectory.getAbsolutePath() +
 							"/extras/", true);

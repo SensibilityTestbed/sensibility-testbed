@@ -14,7 +14,7 @@
  * the License.
  */
 
-package com.sensibilitytestbed.process;
+package com.sensibility_testbed.process;
 
 import java.io.File;
 import java.io.FileDescriptor;
@@ -33,8 +33,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import android.util.Log;
 
 import com.googlecode.android_scripting.Exec;
-import com.sensibilitytestbed.Common;
-import com.sensibilitytestbed.ScriptActivity;
+import com.sensibility_testbed.Common;
+import com.sensibility_testbed.ScriptActivity;
 import com.trilead.ssh2.StreamGobbler;
 
 /***

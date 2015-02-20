@@ -14,7 +14,7 @@
  * the License.
  */
 
-package com.sensibilitytestbed;
+package com.sensibility_testbed;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -42,7 +42,7 @@ import com.googlecode.android_scripting.Constants;
 import com.googlecode.android_scripting.ForegroundService;
 import com.googlecode.android_scripting.NotificationIdFactory;
 import com.googlecode.android_scripting.interpreter.InterpreterConfiguration;
-import com.sensibilitytestbed.process.SeattleScriptProcess;
+import com.sensibility_testbed.process.SeattleScriptProcess;
 
 /**
  * 
@@ -61,7 +61,7 @@ public class ScriptService extends ForegroundService {
 	private final static int NOTIFICATION_ID = NotificationIdFactory.create();
 	private final IBinder mBinder;
 	
-	//private String AbsolutePath = "/mnt/sdcard/Android/data/com.sensibilitytestbed/files";
+	//private String AbsolutePath = "/mnt/sdcard/Android/data/com.sensibility_testbed/files";
 
 	AndroidProxy mProxy;
 

@@ -14,7 +14,7 @@
  * the License.
  */
 
-package com.sensibilitytestbed.process;
+package com.sensibility_testbed.process;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -29,8 +29,8 @@ import com.googlecode.android_scripting.interpreter.Interpreter;
 import com.googlecode.android_scripting.interpreter.InterpreterConstants;
 import com.googlecode.android_scripting.interpreter.MyInterpreter;
 import com.googlecode.android_scripting.jsonrpc.RpcReceiverManagerFactory;
-import com.sensibilitytestbed.ScriptActivity;
-import com.sensibilitytestbed.ScriptApplication;
+import com.sensibility_testbed.ScriptActivity;
+import com.sensibility_testbed.ScriptApplication;
 
 /**
  * Slightly modified version of the InterpreterProcess from SL4A

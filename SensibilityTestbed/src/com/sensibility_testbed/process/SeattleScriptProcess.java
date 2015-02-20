@@ -1,4 +1,4 @@
-package com.sensibilitytestbed.process;
+package com.sensibility_testbed.process;
 
 import com.googlecode.android_scripting.AndroidProxy;
 import com.googlecode.android_scripting.interpreter.InterpreterConfiguration;

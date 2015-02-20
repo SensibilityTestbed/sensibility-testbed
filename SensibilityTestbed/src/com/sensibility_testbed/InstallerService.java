@@ -14,7 +14,7 @@
  * the License.
  */
 
-package com.sensibilitytestbed;
+package com.sensibility_testbed;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -57,7 +57,7 @@ import com.googlecode.android_scripting.FileUtils;
 import com.googlecode.android_scripting.ForegroundService;
 import com.googlecode.android_scripting.NotificationIdFactory;
 import com.googlecode.android_scripting.interpreter.InterpreterConfiguration;
-import com.sensibilitytestbed.process.SeattleScriptProcess;
+import com.sensibility_testbed.process.SeattleScriptProcess;
 
 /**
  * 

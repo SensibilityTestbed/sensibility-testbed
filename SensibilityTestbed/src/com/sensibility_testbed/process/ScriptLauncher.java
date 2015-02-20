@@ -14,7 +14,7 @@
  * the License.
  */
 
-package com.sensibilitytestbed.process;
+package com.sensibility_testbed.process;
 
 import android.app.Service;
 import android.content.Intent;
