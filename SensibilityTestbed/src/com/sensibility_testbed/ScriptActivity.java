@@ -53,11 +53,13 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
+import android.text.Html;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
@@ -110,6 +112,7 @@ public class ScriptActivity extends Activity {
 	private int currentContentView;
 	private File currentLogFile;
 	private ArrayList<File> files;
+	
 	// this shows a progress indicator when unpacking python
 	private ProgressDialog pythonProgress;
 	// Workaround -- status toggle-button could be set incorrectly right after
@@ -756,7 +759,7 @@ public class ScriptActivity extends Activity {
 	}
 	
 
-	/*// check if an app is installed, thanks to 
+	/* // check if an app is installed, thanks to 
 	// http://www.grokkingandroid.com/checking-intent-availability/
 	public static boolean isMyServiceInstalled(Context ctx, Intent intent) {
 		final PackageManager mgr = ctx.getPackageManager();
@@ -782,6 +785,34 @@ public class ScriptActivity extends Activity {
 	@Override
 	protected void onStart() {
 		super.onStart();
+		
+		// show consent form, user must accept and optionally obtain a copy via email 		
+		WebView consent = new WebView(this);		
+		consent.loadUrl("file:///android_asset/updatedParticipantconsentform.html");
+		
+		final Builder consentForm = new AlertDialog.Builder(this)
+		.setView(consent)
+    .setTitle("Device Owner’s Informed Consent / Agreement to Participate")
+    
+		// exit on decline		
+    .setNegativeButton("Decline",
+        new DialogInterface.OnClickListener() {
+      @Override
+      public void onClick(DialogInterface dialog,
+          int which) {
+        android.os.Process.killProcess(android.os.Process.myPid());
+      }
+    })
+    .setPositiveButton("Accept",
+        new DialogInterface.OnClickListener() {
+      @Override
+      public void onClick(DialogInterface dialog,
+          int which) {
+        dialog.dismiss();
+      }
+    });
+    consentForm.create().show();	
+		
 		// Load settings
 		settings = getSharedPreferences(SEATTLE_PREFERENCES,
 				MODE_WORLD_WRITEABLE);
@@ -898,7 +929,7 @@ public class ScriptActivity extends Activity {
 	// Executed after the activity is created, calls onStart()
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+		super.onCreate(savedInstanceState); 
 		this.onStart();
 	}
 }
