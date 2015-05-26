@@ -30,4 +30,56 @@
     <string name="startup_delay">Autostart delay (seconds): </string>
     <string name="about">About</string>
     <string name="thank_you">Thank you for making the world a better place by installing Sensibility Testbed!</string>
+    <string name="email">Email me a copy of this consent form</string>
+    <string name="html_file_location">file:///android_asset/updatedParticipantconsentform.html</string>
+    <string name="email_subject">Sensibility Testbed Consent Form Copy</string>
+    <string name="email_body"><![CDATA[
+        <html>
+        <head>
+		<title>Updated: Participant Consent Form</title>
+	    <meta content="text/html; charset=UTF-8" http-equiv="content-type"></meta>
+		</head>
+		  <body>
+		    <div id="container">
+		      <p class="c13 c5"><span class="c0"></span></p>
+		      <a href="#" name="b4f0c13890fe024afed629231d0e05eb3e13bb95"></a><a href="#" name="0"></a>
+		      <table cellpadding="0" cellspacing="0" class="c19">
+		        <tbody>
+		          <tr class="c18">
+		            <td class="c17" colspan="1" rowspan="1">
+		              <p class="c2 c5"><span class="c3 c0"></span></p>
+		              <p class="c2 c5"><span class="c4 c0 c8"></span></p>
+		              <p class="c2"><span class="c0">You are invited to take part in a research study that will help researchers understand </span><span class="c0">mobile device</span><span class="c0">s and develop new applications and algorithms. This study will be conducted by [</span><span class="c7 c0 c23">Principal Investigator (PI)</span><span class="c7 c0">], </span><span>Polytechnic School of Engineering</span><span class="c0">, New York University. </span><span class="c0">If you agree to participate in this study, you will be asked to download the Sensibility Testbed app from Google Play Store and install it on your mobile device. </span><span class="c0">&nbsp;</span></p>
+		              <p class="c2 c5"><span class="c0 c1"></span></p>
+		              <p class="c2"><span class="c0">Before agreeing to participate in this study we suggest that you read two documents for research participants / device owners. The first describes the purpose of our testbed: </span><span class="c0 c12">Terms of Participation for Device Owners.</span><span class="c0">&nbsp;If you would like to know more details about our research, please refer to </span><span class="c12 c0">Technical Information for Device Owners</span><span class="c1 c0">.</span></p>
+		              <p class="c2 c5"><span class="c1 c0"></span></p>
+		              <p class="c2"><span class="c0">Participation in this study will involve minimal action from participants. D</span><span class="c0">ata will be collected from devices&rsquo; sensors, in the background, as long as participants do not stop the Sensibility app. Participants/device owners may stop any data collection experiment on their own device or leave the Sensibility Testbed research at any time, for any reason, without any consequence.</span></p>
+		              <p class="c2 c5"><span class="c1 c0"></span></p>
+		              <p class="c2"><span class="c1 c0">The risks of participating in this research are minimal. The Sensibility Testbed features software that isolates experimenters&rsquo; code so that it cannot interfere with the functioning or security of your device. We may also use filters to limit the level of detail or information included in the collected data. </span></p>
+		              <p class="c2 c5"><span class="c1 c0"></span></p>
+		              <p class="c16 c13"><span class="c0">Although you will receive no direct benefits, this research may help the investigator improve </span><span>current network protocols or systems and to implement or evaluate new services</span><span class="c0">&nbsp;</span><span class="c0">[See &ldquo;Potential Benefits to Device Owners&rdquo; at </span><span class="c0 c22"><a class="c9" href="https://docs.google.com/document/d/1-1lLnlLdV7rAb5s2pQ_VKIOykCcEmRKcXfAIiVRRvos/edit">purpose of study</a></span><span class="c0">]</span><span class="c0">. </span></p>
+		              <p class="c13 c16"><span class="c1 c0">&nbsp;</span></p>
+		              <p class="c16 c13"><span class="c0">Confidentiality of your data will be strictly m</span><span class="c0">aintained by </span><span class="c0">individual experimenters. </span><span>The IRB at the </span><span class="c0">experimenter&rsquo;s</span><span>&nbsp;home university or research lab will only approve the research once they determine that there is no significant privacy or </span><span class="c0">confidentiality </span><span>risk to participants. </span><span class="c1 c0">They ensure that any sensor data, if stored, is strictly protected.</span></p>
+		              <p class="c6"><span class="c1 c0">&nbsp;</span></p>
+		              <p class="c2"><span class="c1 c0">Participation in this study is voluntary. You may refuse to participate or withdraw at any time without penalty. </span></p>
+		              <p class="c2 c5"><span class="c1 c0"></span></p>
+		              <p class="c2"><span class="c0">If there is anything about the study or your participation that is unclear or that you do not understand, if you have questions or wish to report a research-related problem, you may contact [</span><span class="c7 c0">investigator name</span><span class="c0">] at [</span><span class="c0 c7">PI&rsquo;s phone number, e-mail, University address</span><span class="c0">] or the faculty sponsor, [</span><span class="c7 c0">faculty sponsor name] at [faculty sponsor phone number, e-mail, University address]</span><span class="c1 c0">.</span></p>
+		              <p class="c2 c5"><span class="c1 c0"></span></p>
+		              <p class="c2"><span class="c1 c0">For questions about your rights as a research participant, you may contact the University Committee on Activities Involving Human Subjects, New York University, 665 Broadway, Suite 804, New York, NY 10012 at 212-998-4808 or ask.humansubjects@nyu.edu. </span></p>
+		              <p class="c2 c5"><span class="c1 c0"></span></p>
+		              <p class="c2"><span class="c14 c11 c0">By pressing "Accept", I certify that I am over the age of 18 and the owner of the device that will run the Sensibility app.</span></p>
+		              <p class="c2 c5"><span class="c1 c0"></span></p>
+		              <p class="c2 c5"><span class="c11 c0 c14"></span></p>
+		            </td>
+		          </tr>
+		        </tbody>
+		      </table>
+		      <p class="c5 c13"><span class="c0 c4"></span></p>
+		      <p class="c13 c5"><span class="c0"></span></p>
+		      <p class="c13 c5"><span></span></p>
+		    </div>
+		  </body>
+		</html>
+      ]]>
+ 	</string>
 </resources>

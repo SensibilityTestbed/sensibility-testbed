@@ -19,16 +19,20 @@ package com.sensibility_testbed;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Locale;
 import java.util.logging.Level;
 
 import android.app.Activity;
@@ -54,7 +58,9 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
 import android.text.Html;
+import android.text.InputType;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -68,6 +74,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
@@ -80,12 +87,12 @@ import com.googlecode.android_scripting.Constants;
 import com.googlecode.android_scripting.FileUtils;
 
 /**
- * 
+ *
  * Loosely based on the ScriptActivity found in the ScriptForAndroidTemplate
  * package in SL4A
- * 
+ *
  * This class represents the main activity performed by the SeattleOnAndroid app
- * 
+ *
  */
 public class ScriptActivity extends Activity {
 
@@ -112,9 +119,13 @@ public class ScriptActivity extends Activity {
 	private int currentContentView;
 	private File currentLogFile;
 	private ArrayList<File> files;
-	
-	// this shows a progress indicator when unpacking python
+
+	// Keep track of the number of times the consent form dialog has appeared
+	private int consentCount = 0;
+
+	// This shows a progress indicator when unpacking python
 	private ProgressDialog pythonProgress;
+
 	// Workaround -- status toggle-button could be set incorrectly right after
 	// installation
 	private static boolean autostartedAfterInstallation = false;
@@ -738,7 +749,7 @@ public class ScriptActivity extends Activity {
 				// Python_27 we unpack to ->
 				// /data/data/com.sensibility_testbed/files/python
 				if (zipName.endsWith(Common.PYTHON_ZIP_NAME)) {
-					// This is the Python binary. It needs to live in /data/data/...., 
+					// This is the Python binary. It needs to live in /data/data/....,
 					// as it can't be made executable on the SDcard due to VFAT.
 					// Thus, we must not use seattleInstallDirectory for this.
 					Utils.unzip(content, this.getFilesDir().getAbsolutePath() + "/", true);
@@ -757,18 +768,18 @@ public class ScriptActivity extends Activity {
 		}
 		Log.i(Common.LOG_TAG, Common.LOG_INFO_PYTHON_UNZIP_COMPLETED);
 	}
-	
 
-	/* // check if an app is installed, thanks to 
+
+	/* // check if an app is installed, thanks to
 	// http://www.grokkingandroid.com/checking-intent-availability/
 	public static boolean isMyServiceInstalled(Context ctx, Intent intent) {
 		final PackageManager mgr = ctx.getPackageManager();
-		List<ResolveInfo> list = mgr.queryIntentActivities(intent, 
+		List<ResolveInfo> list = mgr.queryIntentActivities(intent,
 				            PackageManager.MATCH_DEFAULT_ONLY);
 		return list.size() > 0;
 	}*/
-	
-	// check if sl4a is running thanks to: 
+
+	// check if sl4a is running thanks to:
 	// http://stackoverflow.com/questions/7440473/android-how-to-check-if-the-intent-service-is-still-running-or-has-stopped-runni
 	private boolean isMyServiceRunning() {
 	    ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
@@ -779,48 +790,122 @@ public class ScriptActivity extends Activity {
 	    }
 	    return false;
 	}
-	
-	
+
+	//Executed prior to installation
+	private void showConsentForm() {
+    // increment counter -- workaround to prevent the dialog from appearing twice
+    consentCount++;
+
+    // Load the customized layout consent.xml
+    //XXX LayoutInflater inflater = this.getLayoutInflater();
+    //XXX View layout = inflater.inflate(R.layout.consent, null);
+
+    View consentLayout = this.getLayoutInflater().inflate(R.layout.consent, null);
+
+    final CheckBox sendEmailCheckBox = (CheckBox)consentLayout.findViewById(R.id.email_box);
+    WebView consentWebView = (WebView)consentLayout.findViewById(R.id.consent_form);
+    consentWebView.loadUrl(getString(R.string.html_file_location));
+
+    final Builder consentFormDialog = new AlertDialog.Builder(this)
+      .setView(consentLayout)
+      .setTitle("Device Owner’s Informed Consent / Agreement to Participate")
+
+      // force exit on decline
+      .setNegativeButton("Decline",
+          new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog,
+                int which) {
+              android.os.Process.killProcess(android.os.Process.myPid());
+            }
+          })
+
+      // else continue, and prompt user for email address if checked email option
+      .setPositiveButton("Accept",
+          new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog,
+                int which) {
+              if (sendEmailCheckBox.isChecked()) {
+                showEmailPrompt();
+                dialog.dismiss();
+              }
+            }
+          });
+      consentFormDialog.setCancelable(false); // force user to accept or decline
+      consentFormDialog.create().show();
+  }
+
+  // Executed when the user checks the sendEmailBox checkbox
+  private void showEmailPrompt() {
+    final EditText emailInputBox = new EditText(this);
+    emailInputBox.setInputType(InputType.TYPE_CLASS_TEXT);
+
+    final Builder emailDialog = new AlertDialog.Builder(this)
+      .setView(emailInputBox)
+      .setTitle("Please enter your email address")
+
+      // continue with installation if the user changes his/her mind
+      .setNegativeButton("Cancel",
+          new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialog,
+            int which) {
+          dialog.dismiss();
+        }
+      })
+      // prompt user to send an email to input address
+      .setPositiveButton("OK",
+          new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialog,
+            int which) {
+          String email = emailInputBox.getText().toString();
+          if (!email.isEmpty()) emailConsentForm(email);
+
+          dialog.dismiss();
+        }
+      });
+    emailDialog.create().show();
+  }
+
+  // Executed after a user inputs their email address and clicks the "OK" button
+  // Thanks: http://stackoverflow.com/questions/2197741/how-can-i-send-emails-from-my-android-application
+  private void emailConsentForm(String email) {
+    // store time signed to be put next to the subject header
+    String timeSigned = new SimpleDateFormat("yyyy/MM/dd, HH:mm:ss", Locale.US)
+        .format(Calendar.getInstance().getTime());
+
+    Intent emailIntent = new Intent(Intent.ACTION_SEND);
+    emailIntent.setType("text/html")
+               .putExtra(Intent.EXTRA_EMAIL, new String[]{email})
+               .putExtra(Intent.EXTRA_SUBJECT, getString(R.string.email_subject) + " " + timeSigned)
+               .putExtra(Intent.EXTRA_TEXT, Html.fromHtml(getString(R.string.email_body)));
+    try {
+         startActivity(Intent.createChooser(emailIntent, "Send e-mail"));
+    } catch (android.content.ActivityNotFoundException e) {
+         Toast.makeText(this, "There are no email clients installed.", Toast.LENGTH_SHORT).show();
+         Log.e(Common.LOG_TAG, "Could not open an email client. Original error: "
+             + e.toString());
+      }
+  }
+
 	// Executed after the activity is started / resumed
 	@Override
 	protected void onStart() {
 		super.onStart();
-		
-		// show consent form, user must accept and optionally obtain a copy via email 		
-		WebView consent = new WebView(this);		
-		consent.loadUrl("file:///android_asset/updatedParticipantconsentform.html");
-		
-		final Builder consentForm = new AlertDialog.Builder(this)
-		.setView(consent)
-    .setTitle("Device Owner’s Informed Consent / Agreement to Participate")
-    
-		// exit on decline		
-    .setNegativeButton("Decline",
-        new DialogInterface.OnClickListener() {
-      @Override
-      public void onClick(DialogInterface dialog,
-          int which) {
-        android.os.Process.killProcess(android.os.Process.myPid());
-      }
-    })
-    .setPositiveButton("Accept",
-        new DialogInterface.OnClickListener() {
-      @Override
-      public void onClick(DialogInterface dialog,
-          int which) {
-        dialog.dismiss();
-      }
-    });
-    consentForm.create().show();	
-		
+
+		// show consent form via an alert dialog
+		if (consentCount == 0) showConsentForm();
+
 		// Load settings
 		settings = getSharedPreferences(SEATTLE_PREFERENCES,
 				MODE_WORLD_WRITEABLE);
 		seattleInstallDirectory = getExternalFilesDir(null);
-		
+
 		isSeattleInstalled = (new File(ScriptActivity.getSeattlePath() + "seattle_repy/",
 				"nmmain.py")).exists(); // calling isSeattleInstalled() will NOT work...
-		
+
 		Log.v(Common.LOG_TAG, "Application files will be placed in: " +
 			seattleInstallDirectory.getAbsolutePath());
 
@@ -844,12 +929,12 @@ public class ScriptActivity extends Activity {
 			sl4aIntent.setAction(Constants.ACTION_LAUNCH_SERVER);
 			sl4aIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			// XXX How good an idea is hardcoding the listen port?
-			sl4aIntent.putExtra(Constants.EXTRA_USE_SERVICE_PORT, 45678);		
-			
+			sl4aIntent.putExtra(Constants.EXTRA_USE_SERVICE_PORT, 45678);
+
 			if(!Utils.isMyServiceInstalled(getBaseContext(), sl4aIntent)) {
 				Log.i(Common.LOG_TAG, "SL4A is not installed. Too bad! Hope the user goes and installs it some day so we can access sensors.");
 				CharSequence text = "SL4A is not installed. Please install it from https://code.google.com/p/android-scripting/";
-				
+
 				final Builder sl4aNotFound = new AlertDialog.Builder(this)
 				.setMessage(text)
 				.setNeutralButton("OK",
@@ -862,8 +947,8 @@ public class ScriptActivity extends Activity {
 					}
 				});
 				sl4aNotFound.create().show();
-				
-			} 
+
+			}
 			else {
 				// sl4a is installed. now check if it is running
 				if (!isMyServiceRunning()){
@@ -874,14 +959,14 @@ public class ScriptActivity extends Activity {
 						Log.i(Common.LOG_TAG, "SL4A started, yay!!");
 					} catch (Exception e) {
 						Log.e(Common.LOG_TAG, "Trying to start SL4A failed. Original error: "
-								+ e.toString());			
+								+ e.toString());
 					}
 				}
 				else{
 					Log.i(Common.LOG_TAG, "SL4A has started already!!");
 				}
 
-				File pythonBinary = new File(this.getFilesDir().getAbsolutePath() + 
+				File pythonBinary = new File(this.getFilesDir().getAbsolutePath() +
 						"/python/bin/python");
 				// Check if python is installed
 				if (!pythonBinary.exists()) {
@@ -929,7 +1014,7 @@ public class ScriptActivity extends Activity {
 	// Executed after the activity is created, calls onStart()
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState); 
+		super.onCreate(savedInstanceState);
 		this.onStart();
 	}
 }
