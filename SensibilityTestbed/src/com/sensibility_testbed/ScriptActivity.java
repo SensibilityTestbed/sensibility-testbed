@@ -19,20 +19,13 @@ package com.sensibility_testbed;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.NetworkInterface;
 import java.net.SocketException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Enumeration;
-import java.util.List;
-import java.util.Locale;
 import java.util.logging.Level;
 
 import android.app.Activity;
@@ -40,10 +33,12 @@ import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.DialogInterface.OnShowListener;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -51,20 +46,19 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
-import android.os.SystemClock;
 import android.text.Html;
 import android.text.InputType;
 import android.util.Log;
-import android.view.LayoutInflater;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -74,7 +68,6 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
@@ -119,10 +112,17 @@ public class ScriptActivity extends Activity {
 	private int currentContentView;
 	private File currentLogFile;
 	private ArrayList<File> files;
+<<<<<<< HEAD
 
 	// Keep track of the number of times the consent form dialog has appeared
 	private int consentCount = 0;
 
+=======
+
+	// Keep track if the consent form dialog has already appeared
+	private boolean consentShownYet = false;
+
+>>>>>>> 937e48a... html fix width and age checkbox dialog
 	// This shows a progress indicator when unpacking python
 	private ProgressDialog pythonProgress;
 
@@ -791,24 +791,20 @@ public class ScriptActivity extends Activity {
 	    return false;
 	}
 
-	//Executed prior to installation
-	private void showConsentForm() {
-    // increment counter -- workaround to prevent the dialog from appearing twice
-    consentCount++;
+  //Executed prior to installation
+  private void showConsentForm() {
+    // update consent boolean -- workaround to prevent the dialog from appearing twice
+    consentShownYet = true;
 
-    // Load the customized layout consent.xml
-    //XXX LayoutInflater inflater = this.getLayoutInflater();
-    //XXX View layout = inflater.inflate(R.layout.consent, null);
-
+    // Load the customized layout, consent.xml
     View consentLayout = this.getLayoutInflater().inflate(R.layout.consent, null);
 
-    final CheckBox sendEmailCheckBox = (CheckBox)consentLayout.findViewById(R.id.email_box);
     WebView consentWebView = (WebView)consentLayout.findViewById(R.id.consent_form);
     consentWebView.loadUrl(getString(R.string.html_file_location));
 
-    final Builder consentFormDialog = new AlertDialog.Builder(this)
+    final Builder consentFormBuilder = new AlertDialog.Builder(this)
       .setView(consentLayout)
-      .setTitle("Device Owner’s Informed Consent / Agreement to Participate")
+      .setTitle(R.string.consent_title)
 
       // force exit on decline
       .setNegativeButton("Decline",
@@ -820,33 +816,46 @@ public class ScriptActivity extends Activity {
             }
           })
 
-      // else continue, and prompt user for email address if checked email option
+      // else continue with installation
       .setPositiveButton("Accept",
           new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog,
                 int which) {
-              if (sendEmailCheckBox.isChecked()) {
-                showEmailPrompt();
-                dialog.dismiss();
-              }
+              showEmailPrompt();
+              dialog.dismiss();
             }
           });
-      consentFormDialog.setCancelable(false); // force user to accept or decline
-      consentFormDialog.create().show();
+    consentFormBuilder.setCancelable(false); // force user to accept or decline
+
+    // Instantiate new AlertDialog from Builder so that it would be possible to call methods
+    // on the positive button without calling show() on the Builder.
+    final AlertDialog consentFormDialog = consentFormBuilder.create();
+
+    final CheckBox ageCheckBox = (CheckBox)consentLayout.findViewById(R.id.age_box);
+    ageCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+      @Override
+      public void onCheckedChanged(CompoundButton checkBox,
+          boolean isChecked) {
+        if (checkBox.isChecked()) {
+          consentFormDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+        } else {
+            consentFormDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+        }
+      }
+    });
+    consentFormDialog.show();
+
+    // Initialize the accept button to be disabled. Note: Android Bug #6360! This line can
+    // appear only after .show() is called: https://code.google.com/p/android/issues/detail?id=6360
+    consentFormDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
   }
 
-  // Executed when the user checks the sendEmailBox checkbox
+  // Executed when the user accepts consent
   private void showEmailPrompt() {
-    final EditText emailInputBox = new EditText(this);
-    emailInputBox.setInputType(InputType.TYPE_CLASS_TEXT);
-
-    final Builder emailDialog = new AlertDialog.Builder(this)
-      .setView(emailInputBox)
-      .setTitle("Please enter your email address")
-
-      // continue with installation if the user changes his/her mind
-      .setNegativeButton("Cancel",
+    final Builder askUserEmailDialog = new AlertDialog.Builder(this)
+      .setMessage(R.string.email_question)
+      .setNegativeButton("No",
           new DialogInterface.OnClickListener() {
         @Override
         public void onClick(DialogInterface dialog,
@@ -854,8 +863,33 @@ public class ScriptActivity extends Activity {
           dialog.dismiss();
         }
       })
-      // prompt user to send an email to input address
-      .setPositiveButton("OK",
+
+      // open an email textbox dialog if user opts to receive copy of consent
+      .setPositiveButton("Yes",
+          new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialog,
+            int which) {
+          showEmailInput();
+          dialog.dismiss();
+        }
+      });
+    askUserEmailDialog.setCancelable(false);
+    askUserEmailDialog.create().show();
+  }
+
+  //Executed opts for email copy
+  private void showEmailInput() {
+    // user can type their email address here
+    final EditText emailInputBox = new EditText(this);
+    emailInputBox.setInputType(InputType.TYPE_CLASS_TEXT);
+
+    final Builder emailDialog = new AlertDialog.Builder(this)
+      .setView(emailInputBox)
+      .setTitle("Please enter your email address")
+
+      // send an email if an address was provided
+      .setNeutralButton("OK",
           new DialogInterface.OnClickListener() {
         @Override
         public void onClick(DialogInterface dialog,
@@ -872,14 +906,10 @@ public class ScriptActivity extends Activity {
   // Executed after a user inputs their email address and clicks the "OK" button
   // Thanks: http://stackoverflow.com/questions/2197741/how-can-i-send-emails-from-my-android-application
   private void emailConsentForm(String email) {
-    // store time signed to be put next to the subject header
-    String timeSigned = new SimpleDateFormat("yyyy/MM/dd, HH:mm:ss", Locale.US)
-        .format(Calendar.getInstance().getTime());
-
     Intent emailIntent = new Intent(Intent.ACTION_SEND);
     emailIntent.setType("text/html")
                .putExtra(Intent.EXTRA_EMAIL, new String[]{email})
-               .putExtra(Intent.EXTRA_SUBJECT, getString(R.string.email_subject) + " " + timeSigned)
+               .putExtra(Intent.EXTRA_SUBJECT, getString(R.string.email_subject))
                .putExtra(Intent.EXTRA_TEXT, Html.fromHtml(getString(R.string.email_body)));
     try {
          startActivity(Intent.createChooser(emailIntent, "Send e-mail"));
@@ -896,7 +926,7 @@ public class ScriptActivity extends Activity {
 		super.onStart();
 
 		// show consent form via an alert dialog
-		if (consentCount == 0) showConsentForm();
+		if (!consentShownYet) showConsentForm();
 
 		// Load settings
 		settings = getSharedPreferences(SEATTLE_PREFERENCES,
