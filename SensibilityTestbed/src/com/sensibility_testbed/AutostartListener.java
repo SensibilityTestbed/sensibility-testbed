@@ -1,7 +1,5 @@
 package com.sensibility_testbed;
 
-import java.io.File;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -20,7 +18,7 @@ public class AutostartListener extends BroadcastReceiver {
 		Intent i = new Intent(context, ScriptActivity.class);
 		i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		context.startActivity(i);
-		new AsyncStart(context).execute();
+		new AsyncStart(context).execute();  
 	}
 	public class AsyncStart extends AsyncTask<Void, Integer, String> {
 	    private Context context;
@@ -41,7 +39,7 @@ public class AutostartListener extends BroadcastReceiver {
 			    	  // Start the service
 					  Log.i(Common.LOG_TAG, Common.LOG_INFO_SEATTLE_STARTED_AUTOMATICALLY);
 					  context.startService(new Intent(context.getApplicationContext(), ScriptService.class));
-			    	  break;
+			    	break;
 				}
 				else {
 					try {
