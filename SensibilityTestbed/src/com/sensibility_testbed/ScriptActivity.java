@@ -75,7 +75,7 @@ import com.googlecode.android_scripting.FileUtils;
  * Loosely based on the ScriptActivity found in the ScriptForAndroidTemplate
  * package in SL4A
  *
- * This class represents the main activity performed by the SeattleOnAndroid app
+ * This class represents the main activity performed by the SensibilityTestbed app
  *
  */
 public class ScriptActivity extends Activity {
@@ -92,28 +92,23 @@ public class ScriptActivity extends Activity {
   public final static String OPTIONAL_ARGUMENTS = "optional_arguments";
   public final static String UPDATE_MESSAGE_ID = "UPD";
   public final static String CONSENT_COMPLETED = "consent_completed";
+
   // Constants used in calculating the percentage to donate
   public final static int MINIMUM_DONATE = 1;
   public final static int MAXIMUM_DONATE = 100;
   public final static int DEFAULT_DONATE = 20;
   public final static int MAXIMUM_SEEKBAR = MAXIMUM_DONATE - MINIMUM_DONATE + 1;
+
   // Some private variables
   private int donate = -1;
   private int currentContentView;
   private File currentLogFile;
   private ArrayList<File> files;
+  private SharedPreferences settings;
 
   // Keep track if the consent form dialog has already appeared, used to prevent
-  // it from popping up twice, and beingoverlaid on top of one another
+  // it from popping up twice, and being overlaid on top of one another
   private boolean consentShownTwice = false;
-
-  // Keep track if the consent form dialog has gone to completion, used to
-  // prevent
-  // the consent dialog from reappearing after user has accepted it
-  private static boolean consentCompleted = false;
-
-  // Keep track if python was unpacked to completion
-  private static boolean pythonUnpacked = false;
 
   // This shows a progress indicator when unpacking python
   private ProgressDialog pythonProgress;
@@ -122,6 +117,9 @@ public class ScriptActivity extends Activity {
   // installation
   private static boolean autostartedAfterInstallation = false;
   public static boolean isSeattleInstalled = false;
+
+  // Keep track if the device has been rebooted, called by AutostartListener
+  public static boolean deviceRebooted = false;
 
   // This is initialized by the onStart() method. It needs to be static
   // as it is referred to in a lot of different classes. This should be fine
@@ -133,21 +131,18 @@ public class ScriptActivity extends Activity {
   // Message handler used for notifying the activity
   public static MyMessageHandler handler;
 
-  private SharedPreferences settings;
-
-  // Returns the root directory of seattle
-  // Not to be confused with seattle_repy directory, which is a subdirectory
-  // of seattle-root
+  // Returns the root directory of Seattle -- not to be confused with seattle_repy
+  // directory, which is a subdirectory of seattle-root
   public static String getSeattlePath() {
     return seattleInstallDirectory.getAbsolutePath() + "/sl4a/seattle/";
   }
 
-  // Check if seattle is installed by checking if nmmain.py exists
+  // Check if Seattle is installed by checking if nmmain.py exists
   private boolean isSeattleInstalled() {
     return (new File(getSeattlePath() + "seattle_repy/nmmain.py")).exists();
   }
 
-  // setup python progressDialog
+  // Set-up the Python progressDialog
   private void preparePythonProgress() {
     this.pythonProgress = new ProgressDialog(this);
     pythonProgress.setMessage("Unpacking Python...");
@@ -177,7 +172,6 @@ public class ScriptActivity extends Activity {
             startService(new Intent(getBaseContext(), ScriptService.class));
           }
           // If AUTOSTART_ON_BOOT key does not exist, create it
-          // Default value: true
           if (!settings.contains(AUTOSTART_ON_BOOT)) {
             saveSharedBooleanPreference(AUTOSTART_ON_BOOT, true);
           }
@@ -203,8 +197,7 @@ public class ScriptActivity extends Activity {
               }).show();
         }
       } catch (final Exception e) {
-        // Log exceptions
-        Log.e(Common.LOG_TAG, Common.LOG_EXCEPTION_MESSAGE_HANDLING, e);
+          Log.e(Common.LOG_TAG, Common.LOG_EXCEPTION_MESSAGE_HANDLING, e);
       }
     }
   }
@@ -239,16 +232,17 @@ public class ScriptActivity extends Activity {
     currentLogFile = file;
     this.setContentView(R.layout.logfileview);
     currentContentView = R.layout.logfileview;
+
     // Set up TextViews
     final TextView twDesc = (TextView) this
         .findViewById(R.id.textViewLogDescription);
     twDesc.setText(file.getName() + ":");
     final TextView twCont = (TextView) this
         .findViewById(R.id.textViewLogContents);
-    // File does not exist
-    if (!file.exists())
+
+    if (!file.exists()) {
       twCont.setText("File does not exist!");
-    else {
+    } else {
       // File exists, iterate through it
       try {
         final BufferedReader r = new BufferedReader(new FileReader(file));
@@ -263,6 +257,7 @@ public class ScriptActivity extends Activity {
         Log.e(Common.LOG_TAG, Common.LOG_EXCEPTION_READING_LOG_FILE, e);
       }
     }
+
     // Post event to scroll down to the bottom of the page
     final ScrollView sv = (ScrollView) this
         .findViewById(R.id.logFileScrollView);
@@ -285,13 +280,11 @@ public class ScriptActivity extends Activity {
     } else if (currentContentView == R.layout.about) {
       showFrontendLayout();
     } else {
-      // Let android handle it.
       super.onBackPressed();
     }
   }
 
-  // Get a listing of the (hopefully) seattle specific log files in the
-  // directory
+  // Get a listing of the (hopefully) seattle specific log files
   public static ArrayList<File> getLogFilesInDirectory(File directory) {
     // Accepts only directories
     final FileFilter directoryFilter = new FileFilter() {
@@ -300,8 +293,8 @@ public class ScriptActivity extends Activity {
         return pathname.isDirectory();
       }
     };
-    // Accepts files with .log extension or
-    // (nodemanager|softwareupdater|installInfo).(old|new)
+
+    // Accepts files with .log extension or (nodemanager|softwareupdater|installInfo).(old|new)
     final FileFilter logFilter = new FileFilter() {
       @Override
       public boolean accept(File pathname) {
@@ -327,12 +320,15 @@ public class ScriptActivity extends Activity {
     final ArrayList<File> result = new ArrayList<File>();
     if (!dir.exists())
       return result;
+
     // Get files in this directory
     final File[] files = dir.listFiles(logFilter);
     if (files != null)
       result.addAll(Arrays.asList(files));
+
     // Get subdirectories
     final File[] subdirs = dir.listFiles(dirFilter);
+
     // Iterate through subdirectories
     if (subdirs != null)
       for (int i = 0; i < subdirs.length; i++) {
@@ -347,6 +343,7 @@ public class ScriptActivity extends Activity {
     setContentView(R.layout.logmenuview);
     currentContentView = R.layout.logmenuview;
     final ListView lv = (ListView) findViewById(R.id.listView1);
+
     // Get log files
     files = getLogFilesInDirectory(new File(getSeattlePath()));
     final ArrayList<String> strings = new ArrayList<String>();
@@ -354,9 +351,11 @@ public class ScriptActivity extends Activity {
     for (int i = 0; i < files.size(); i++) {
       strings.add(files.get(i).getName());
     }
+
     // Set up ListView
     lv.setAdapter(new ArrayAdapter<String>(this, R.layout.list_item, strings
         .toArray(new String[strings.size()])));
+
     // Set up onClickListener
     lv.setOnItemClickListener(new OnItemClickListener() {
       @Override
@@ -371,59 +370,64 @@ public class ScriptActivity extends Activity {
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
-    case R.id.view_log_button:
-      // Show available log files
-      showAvailableLogListing();
-      return true;
-    case R.id.uninstall_seattle_button:
-      // Uninstall seattle
-      final ScriptActivity sa = this;
-      new AlertDialog.Builder(this)
-          .setMessage("Would you really like to uninstall Sensibility Testbed?")
-          .setCancelable(false)
-          .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-              Log.i(Common.LOG_TAG, Common.LOG_INFO_UNINSTALL_INITIATED);
-              // Kill service, in case it was running
-              if (ScriptService.isServiceRunning())
-                killService();
-              // Remove Seattle folder
-              FileUtils.delete(new File(getSeattlePath()));
-              if (settings.contains(AUTOSTART_ON_BOOT)) {
-                final SharedPreferences.Editor editor = settings.edit();
-                editor.remove(AUTOSTART_ON_BOOT);
-                editor.commit();
+      case R.id.view_log_button:
+        // Show available log files
+        showAvailableLogListing();
+        return true;
+
+      case R.id.uninstall_seattle_button:
+        // Uninstall seattle
+        final ScriptActivity sa = this;
+        new AlertDialog.Builder(this)
+            .setMessage("Would you really like to uninstall Sensibility Testbed?")
+            .setCancelable(false)
+            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+              public void onClick(DialogInterface dialog, int id) {
+                Log.i(Common.LOG_TAG, Common.LOG_INFO_UNINSTALL_INITIATED);
+                // Kill service, in case it was running
+                if (ScriptService.isServiceRunning())
+                  killService();
+                // Remove Seattle folder
+                FileUtils.delete(new File(getSeattlePath()));
+                if (settings.contains(AUTOSTART_ON_BOOT)) {
+                  final SharedPreferences.Editor editor = settings.edit();
+                  editor.remove(AUTOSTART_ON_BOOT);
+                  editor.commit();
+                }
+                new AlertDialog.Builder(sa)
+                    .setMessage("Seattle uninstalled successfully!")
+                    .setNeutralButton("Ok",
+                        new DialogInterface.OnClickListener() {
+                          @Override
+                          public void onClick(DialogInterface dialog, int which) {
+                          }
+                        }).create().show();
+                Log.i(Common.LOG_TAG, Common.LOG_INFO_UNINSTALL_SUCCESS);
+                showBasicInstallLayout();
               }
-              new AlertDialog.Builder(sa)
-                  .setMessage("Seattle uninstalled successfully!")
-                  .setNeutralButton("Ok",
-                      new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                        }
-                      }).create().show();
-              Log.i(Common.LOG_TAG, Common.LOG_INFO_UNINSTALL_SUCCESS);
-              showBasicInstallLayout();
-            }
-          }).setNegativeButton("No", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-              dialog.cancel();
-            }
-          }).create().show();
-      return true;
-    case R.id.back:
-      // Back button
-      onBackPressed();
-      return true;
-    case R.id.refresh:
-      // Refresh
-      doRefresh();
-      return true;
-    case R.id.view_about_button:
-      showAboutLayout();
-      return true;
-    default:
-      return false;
+            }).setNegativeButton("No", new DialogInterface.OnClickListener() {
+              public void onClick(DialogInterface dialog, int id) {
+                dialog.cancel();
+              }
+            }).create().show();
+        return true;
+
+      case R.id.back:
+        // Back button
+        onBackPressed();
+        return true;
+
+      case R.id.refresh:
+        // Refresh
+        doRefresh();
+        return true;
+
+      case R.id.view_about_button:
+        showAboutLayout();
+        return true;
+
+      default:
+        return false;
     }
   }
 
@@ -447,15 +451,16 @@ public class ScriptActivity extends Activity {
   private void showMainLayout() {
     setContentView(R.layout.main);
     currentContentView = R.layout.main;
+
     // Set up status toggle button
     final ToggleButton toggleStatus = (ToggleButton) findViewById(R.id.toggleStatus);
     toggleStatus.setChecked(ScriptService.isServiceRunning());
-
     if (ScriptActivity.autostartedAfterInstallation) {
       ScriptActivity.autostartedAfterInstallation = false;
       toggleStatus.setChecked(true);
     }
 
+    // Run a background service if the autostart checkbox is checked
     toggleStatus.setOnCheckedChangeListener(new OnCheckedChangeListener() {
       @Override
       public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -464,11 +469,11 @@ public class ScriptActivity extends Activity {
           ScriptService.serviceInitiatedByUser = true;
           startService(new Intent(getBaseContext(), ScriptService.class));
         } else {
-          // Kill service
           killService();
         }
       }
     });
+
     // Set up autostart checkbox
     final CheckBox checkBoxAutostart = (CheckBox) findViewById(R.id.checkBoxAutostart);
     checkBoxAutostart.setOnCheckedChangeListener(new OnCheckedChangeListener() {
@@ -544,22 +549,19 @@ public class ScriptActivity extends Activity {
           donate = MAXIMUM_DONATE;
         tw.setText(donateString + ": " + Integer.toString(donate));
       }
-
       @Override
-      public void onStartTrackingTouch(SeekBar seekBar) {
-      }
-
+      public void onStartTrackingTouch(SeekBar seekBar) {}
       @Override
-      public void onStopTrackingTouch(SeekBar seekBar) {
-      }
+      public void onStopTrackingTouch(SeekBar seekBar) {}
     });
 
     String referrer = ReferralReceiver.retrieveReferralParams(
         getApplicationContext()).get("utm_content");
-    if (referrer == null)
+    if (referrer == null) {
       referrer = "Altruistic donation";
-    else
+    } else {
       referrer = "Donate to: " + referrer;
+    }
 
     final TextView referrerView = (TextView) findViewById(R.id.referview);
     referrerView.setText(referrer);
@@ -678,16 +680,13 @@ public class ScriptActivity extends Activity {
       tw.setText("v"
           + getPackageManager().getPackageInfo(getPackageName(), 0).versionName);
     } catch (final NameNotFoundException e) {
-      // This exception should not occur
       Log.e(Common.LOG_TAG, Common.LOG_EXCEPTION_ABOUT_NNF, e);
     }
     currentContentView = R.layout.about;
   }
 
-  // Unpack and set file permission for python files located in res/raw based
-  // off of
-  // Anthony Prieur & Daniel Oppenheim work
-  // https://code.google.com/p/android-python27/
+  // Unpack and set file permission for python files located in res/raw based off of
+  // Anthony Prieur & Daniel Oppenheim work -- https://code.google.com/p/android-python27/
   private void copyPythonToLocal() {
     String zipPath, zipName;
     InputStream content;
@@ -710,15 +709,13 @@ public class ScriptActivity extends Activity {
         if (zipName.endsWith(Common.PYTHON_ZIP_NAME)) {
           // This is the Python binary. It needs to live in /data/data/....,
           // as it can't be made executable on the SDcard due to VFAT.
-          // Thus, we must not use seattleInstallDirectory for this.
           Utils
               .unzip(content, this.getFilesDir().getAbsolutePath() + "/", true);
           // set file permissions
           FileUtils.chmod(new File(this.getFilesDir().getAbsolutePath()
               + "/python/bin/python"), 0755);
         }
-        // Python_extras_27 we unpack to ->
-        // /sdcard/com.sensibility_testbed/extras/python
+        // Python_extras_27 we unpack to -> /sdcard/com.sensibility_testbed/extras/python
         else if (zipName.endsWith(Common.PYTHON_EXTRAS_ZIP_NAME)) {
           Utils.unzip(content, seattleInstallDirectory.getAbsolutePath()
               + "/extras/", true);
@@ -730,16 +727,7 @@ public class ScriptActivity extends Activity {
     Log.i(Common.LOG_TAG, Common.LOG_INFO_PYTHON_UNZIP_COMPLETED);
   }
 
-  /*
-   * // check if an app is installed, thanks to //
-   * http://www.grokkingandroid.com/checking-intent-availability/ public static
-   * boolean isMyServiceInstalled(Context ctx, Intent intent) { final
-   * PackageManager mgr = ctx.getPackageManager(); List<ResolveInfo> list =
-   * mgr.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
-   * return list.size() > 0; }
-   */
-
-  // check if sl4a is running thanks to:
+  // Check if Sl4a is running thanks to:
   // http://stackoverflow.com/questions/7440473/android-how-to-check-if-the-intent-service-is-still-running-or-has-stopped-runni
   private boolean isMyServiceRunning() {
     final ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
@@ -762,62 +750,60 @@ public class ScriptActivity extends Activity {
 
   // Executed prior to installation
   private void showConsentForm() {
-    consentShownTwice = true;
+    // Workaround for a small bug which displays the consent form two times
+    if (!consentShownTwice) {
+      consentShownTwice = true;
 
-    // Load the customized layout
-    final View consentLayout = this.getLayoutInflater().inflate(
-        R.layout.consent, null);
-    final WebView consentWebView = (WebView) consentLayout
-        .findViewById(R.id.consent_form);
-    consentWebView.loadUrl(getString(R.string.html_file_location));
+      // Load the customized layout
+      final View consentLayout = this.getLayoutInflater().inflate(
+          R.layout.consent, null);
+      final WebView consentWebView = (WebView) consentLayout
+          .findViewById(R.id.consent_form);
+      consentWebView.loadUrl(getString(R.string.html_file_location));
 
-    final Builder consentFormBuilder = new AlertDialog.Builder(this)
-        .setView(consentLayout).setTitle(R.string.consent_title)
-
-        // force exit on decline
-        .setNegativeButton("Decline", new DialogInterface.OnClickListener() {
-          @Override
-          public void onClick(DialogInterface dialog, int which) {
-            android.os.Process.killProcess(android.os.Process.myPid());
-          }
-        })
-
-        // else continue with installation
-        .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
-          @Override
-          public void onClick(DialogInterface dialog, int which) {
-            showEmailPrompt();
-            dialog.dismiss();
-          }
-        });
-    consentFormBuilder.setCancelable(false); // force user to accept or decline
-
-    final AlertDialog consentFormDialog = consentFormBuilder.create();
-
-    // allow user to press accept only if the check-box is ticked
-    final CheckBox ageCheckBox = (CheckBox) consentLayout
-        .findViewById(R.id.age_box);
-    ageCheckBox
-        .setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-          @Override
-          public void onCheckedChanged(CompoundButton checkBox,
-              boolean isChecked) {
-            if (checkBox.isChecked()) {
-              consentFormDialog.getButton(DialogInterface.BUTTON_POSITIVE)
-                  .setEnabled(true);
-            } else {
-              consentFormDialog.getButton(DialogInterface.BUTTON_POSITIVE)
-                  .setEnabled(false);
+      final Builder consentFormBuilder = new AlertDialog.Builder(this)
+          .setView(consentLayout).setTitle(R.string.consent_title)
+          // force exit on decline
+          .setNegativeButton("Decline", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+              android.os.Process.killProcess(android.os.Process.myPid());
             }
-          }
-        });
-    consentFormDialog.show();
+          })
+          // else continue with installation
+          .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+              showEmailPrompt();
+              dialog.dismiss();
+            }
+          });
+      consentFormBuilder.setCancelable(false); // force user to accept or decline
+      final AlertDialog consentFormDialog = consentFormBuilder.create();
 
-    // Initialize the accept button to be disabled. Note: Android Bug #6360!
-    // This line can appear only after .show() is called:
-    // https://code.google.com/p/android/issues/detail?id=6360
-    consentFormDialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(
-        false);
+      // allow user to press accept only if user is above 18/owner of device
+      final CheckBox ageCheckBox = (CheckBox) consentLayout
+          .findViewById(R.id.age_box);
+      ageCheckBox
+          .setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton checkBox,
+                boolean isChecked) {
+              if (checkBox.isChecked()) {
+                consentFormDialog.getButton(DialogInterface.BUTTON_POSITIVE)
+                    .setEnabled(true);
+              } else {
+                consentFormDialog.getButton(DialogInterface.BUTTON_POSITIVE)
+                    .setEnabled(false);
+              }
+            }
+          });
+      consentFormDialog.show();
+      // Note: Android Bug #6360: https://code.google.com/p/android/issues/detail?id=6360
+      // AlertDialog.show must be defined before AlertDialog.getButton.setEnabled(...)
+      consentFormDialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(
+          false);
+    }
   }
 
   // Executed when the user accepts consent
@@ -830,9 +816,7 @@ public class ScriptActivity extends Activity {
           public void onClick(DialogInterface dialog, int which) {
             dialog.dismiss();
 
-            if (pythonUnpacked) showPythonDialog();
-
-            consentCompleted = true;
+            installPython();
             saveSharedBooleanPreference(CONSENT_COMPLETED, true);
           }
         })
@@ -859,37 +843,31 @@ public class ScriptActivity extends Activity {
     final Builder emailDialog = new AlertDialog.Builder(this)
         .setView(emailInputBox).setTitle(R.string.email_enter_title)
 
-      // send an email if an address was provided
-      .setPositiveButton("OK",
-          new DialogInterface.OnClickListener() {
-        @Override
-        public void onClick(DialogInterface dialog,
-            int which) {
-          String email = emailInputBox.getText().toString();
-	  emailConsentForm(email);
+        // send an email
+        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+          @Override
+          public void onClick(DialogInterface dialog, int which) {
+            emailConsentForm(emailInputBox.getText().toString());
+            dialog.dismiss();
+          }
+        })
 
-          dialog.dismiss();
-        }
-      })
+        .setNegativeButton("I changed my mind!",
+            new DialogInterface.OnClickListener() {
+              @Override
+              public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
 
-      .setNegativeButton("I changed my mind!",
-          new DialogInterface.OnClickListener() {
-        @Override
-        public void onClick(DialogInterface dialog,
-            int which) {
-
-          dialog.dismiss();
-          if (pythonUnpacked) showPythonDialog();
-          consentCompleted = true;
-        }
-      });
+                installPython();
+                saveSharedBooleanPreference(CONSENT_COMPLETED, true);
+              }
+            });
     emailDialog.setCancelable(false);
     emailDialog.create().show();
   }
 
   // Executed after a user inputs their email address and clicks the "OK" button
-  // Thanks:
-  // http://stackoverflow.com/questions/2197741/how-can-i-send-emails-from-my-android-application
+  // Thanks: http://stackoverflow.com/questions/2197741/how-can-i-send-emails-from-my-android-application
   private void emailConsentForm(String email) {
     final Intent emailIntent = new Intent(Intent.ACTION_SEND);
     emailIntent
@@ -906,13 +884,11 @@ public class ScriptActivity extends Activity {
       Log.e(Common.LOG_TAG, "Could not open an email client. Original error: "
           + e.toString());
     }
-    if (pythonUnpacked) showPythonDialog();
-
-    consentCompleted = true;
+    installPython();
     saveSharedBooleanPreference(CONSENT_COMPLETED, true);
   }
 
-  // Executed in onStart(), unpack and install python if needed
+  // Executed in onStart(), unpack and install Python if needed
   private void installPython() {
     final File pythonBinary = new File(this.getFilesDir().getAbsolutePath()
         + "/python/bin/python");
@@ -929,10 +905,9 @@ public class ScriptActivity extends Activity {
           runOnUiThread(new Runnable() {
             @Override
             public void run() {
-              // Python unpacking finished so kill the
-              // displayed progress bar
+              // Python unpacking finished so kill the progress bar
               pythonProgress.dismiss();
-              pythonUnpacked = true;
+              showPythonDialog();
             }
           });
         }
@@ -940,7 +915,7 @@ public class ScriptActivity extends Activity {
     }
   }
 
-  // Setup dialog to display when python unpacking is complete
+  // Setup dialog to display when Python unpacking is complete
   private void showPythonDialog() {
     final Builder pythonComplete = new AlertDialog.Builder(this).setMessage(
         "Python unpack complete!").setNeutralButton("OK",
@@ -952,50 +927,17 @@ public class ScriptActivity extends Activity {
     pythonComplete.create().show();
   }
 
-  // Executed after the activity is started / resumed
-  @Override
-  protected void onStart() {
-    super.onStart();
-
-    // check if python is installed, if not install it
-    installPython();
-
-    // load settings
-    settings = getSharedPreferences(SEATTLE_PREFERENCES, MODE_WORLD_WRITEABLE);
-
-    // check if consent form already shown, if not, show it
-    if (!settings.contains(CONSENT_COMPLETED)) {
-      saveSharedBooleanPreference(CONSENT_COMPLETED, false);
-    }
-    if (!settings.getBoolean(CONSENT_COMPLETED, true)) {
-      if (!consentCompleted) {
-        if (!consentShownTwice) showConsentForm();
-      }
-    }
-
-    seattleInstallDirectory = getExternalFilesDir(null);
-
-    // calling isSeattleInstalled() will NOT work...
-    isSeattleInstalled = (new File(ScriptActivity.getSeattlePath()
-        + "seattle_repy/", "nmmain.py")).exists();
-
-    Log.v(Common.LOG_TAG, "Application files will be placed in: "
-        + seattleInstallDirectory.getAbsolutePath());
-
+  // Executed in onStart(), verify that SL4A is installed
+  // Thank you: http://stackoverflow.com/questions/6829187/android-explicit-intent-with-target-component, and http://stackoverflow.com/questions/2780102/open-another-application-from-your-own-intent/
+  private void checkSL4AInstall() {
     if (!Environment.getExternalStorageState()
         .equals(Environment.MEDIA_MOUNTED)) {
       // External storage device not mounted
       showNotMountedLayout();
     } else {
-      // Let's try SL4A!
       // Start SL4A
-      // XXX Repeat of code in ScriptService.java!
       Log.v(Common.LOG_TAG, "Creating SL4A Intent....");
       final Intent sl4aIntent = new Intent();
-      // Thank you,
-      // http://stackoverflow.com/questions/6829187/android-explicit-intent-with-target-component
-      // and
-      // http://stackoverflow.com/questions/2780102/open-another-application-from-your-own-intent/
       sl4aIntent
           .setComponent(ComponentName
               .unflattenFromString("com.googlecode.android_scripting/.activity.ScriptingLayerServiceLauncher"));
@@ -1006,27 +948,26 @@ public class ScriptActivity extends Activity {
 
       if (!Utils.isMyServiceInstalled(getBaseContext(), sl4aIntent)) {
         Log.i(
-            Common.LOG_TAG,
-            "SL4A is not installed. Too bad! Hope the user goes and installs it some day so we can access sensors.");
-        final CharSequence text = "SL4A is not installed. Please install it from https://code.google.com/p/android-scripting/";
+            Common.LOG_TAG, getString(R.string.sl4a_not_installed));
+        final CharSequence text = getString(R.string.sl4a_not_installed_msg);
 
         final Builder sl4aNotFound = new AlertDialog.Builder(this).setMessage(
             text).setNeutralButton("OK", new DialogInterface.OnClickListener() {
           @Override
           public void onClick(DialogInterface dialog, int which) {
-            // if sl4a is not installed, exit the app
+            // If SL4A is not installed, exit the app
             android.os.Process.killProcess(android.os.Process.myPid());
           }
         });
         sl4aNotFound.create().show();
 
       } else {
-        // sl4a is installed. now check if it is running
+        // SL4A is installed. now check if it is running
         if (!isMyServiceRunning()) {
           Log.i(Common.LOG_TAG, "SL4A has not yet started!!");
 
           try {
-            startActivity(sl4aIntent); // NOT startService! D'oh!
+            startActivity(sl4aIntent);
             Log.i(Common.LOG_TAG, "SL4A started, yay!!");
           } catch (final Exception e) {
             Log.e(Common.LOG_TAG,
@@ -1042,10 +983,46 @@ public class ScriptActivity extends Activity {
     }
   }
 
+  // Executed in onStart(), verify Seattle install directories
+  private void checkSeattleInstall() {
+    seattleInstallDirectory = getExternalFilesDir(null);
+    // calling isSeattleInstalled() will NOT work...
+    isSeattleInstalled = (new File(ScriptActivity.getSeattlePath()
+        + "seattle_repy/", "nmmain.py")).exists();
+    Log.v(Common.LOG_TAG, "Application files will be placed in: "
+        + seattleInstallDirectory.getAbsolutePath());
+  }
+
+  // Executed after the activity is started / resumed
+  @Override
+  protected void onStart() {
+    super.onStart();
+
+    // If the consent form was not finished to completion, show it
+    if (!settings.getBoolean(CONSENT_COMPLETED, true)) {
+      showConsentForm();
+    }
+
+    // Verify installation for both Seattle and SL4A
+    checkSeattleInstall();
+    checkSL4AInstall();
+  }
+
   // Executed after the activity is created, calls onStart()
   @Override
   protected void onCreate(Bundle savedInstanceState) {
-    moveTaskToBack(true);
+    // get and save the shared preferences
+    settings = getSharedPreferences(SEATTLE_PREFERENCES, MODE_WORLD_WRITEABLE);
+
+    // If CONSENT_COMPLETED key does not exist, create it
+    if (!settings.contains(CONSENT_COMPLETED)) {
+      saveSharedBooleanPreference(CONSENT_COMPLETED, false);
+    }
+    // Keep app in the bottom of activity stack once consent form completed
+    if (settings.getBoolean(CONSENT_COMPLETED, true)) {
+      moveTaskToBack(true);
+    }
+
     super.onCreate(savedInstanceState);
     this.onStart();
   }
