@@ -1,7 +1,5 @@
 package com.sensibility_testbed;
 
-import java.io.File;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -19,8 +17,8 @@ public class AutostartListener extends BroadcastReceiver {
 		// Executed on successful booting
 		Intent i = new Intent(context, ScriptActivity.class);
 		i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-		context.startActivity(i);
-		new AsyncStart(context).execute();
+		context.startActivity(i); 
+		new AsyncStart(context).execute();  
 	}
 	public class AsyncStart extends AsyncTask<Void, Integer, String> {
 	    private Context context;
@@ -33,15 +31,16 @@ public class AutostartListener extends BroadcastReceiver {
 	    	while (true) {		
 	    		boolean isInstalled = ScriptActivity.isSeattleInstalled;	    		
 	    		SharedPreferences settings = context.getSharedPreferences(ScriptActivity.SEATTLE_PREFERENCES, Context.MODE_WORLD_WRITEABLE);
+	    		
 	    		// Check if the app is installed and is to be run on startup
-	    		if(isInstalled && settings.getBoolean(ScriptActivity.AUTOSTART_ON_BOOT,true)) {
-			    	  Intent serviceIntent = new Intent();
-			    	  serviceIntent.setAction("com.sensibility_testbed.ScriptService");
-			    	  ScriptService.serviceInitiatedByUser = true;
-			    	  // Start the service
+	    		if(isInstalled && settings.getBoolean(ScriptActivity.AUTOSTART_ON_BOOT,true)) {    		    
+    		    // Start the service
+		    	  Intent serviceIntent = new Intent();
+		    	  serviceIntent.setAction("com.sensibility_testbed.ScriptService");
+		    	  ScriptService.serviceInitiatedByUser = true;			    	  
 					  Log.i(Common.LOG_TAG, Common.LOG_INFO_SEATTLE_STARTED_AUTOMATICALLY);
-					  context.startService(new Intent(context.getApplicationContext(), ScriptService.class));
-			    	  break;
+					  context.startService(new Intent(context.getApplicationContext(), ScriptService.class));				  
+			    	break;
 				}
 				else {
 					try {

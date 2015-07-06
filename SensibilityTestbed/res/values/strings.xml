@@ -30,4 +30,13 @@
     <string name="startup_delay">Autostart delay (seconds): </string>
     <string name="about">About</string>
     <string name="thank_you">Thank you for making the world a better place by installing Sensibility Testbed!</string>
+    <string name="consent_title">Device Owner’s Informed Consent / Agreement to Participate</string>
+    <string name="age">I am over the age of 18 and the owner of the device that will run the Sensibility Testbed application.</string>
+    <string name="email_question">Would you like to receive an email copy of the consent form?</string>
+    <string name="email_enter_title">Please enter your email address below:</string>
+    <string name="html_file_location">file:///android_asset/updatedParticipantconsentform.html</string>
+    <string name="email_subject">Sensibility Testbed Consent Form</string>
+    <string name="email_body"><![CDATA[<html><head><title>Updated: Participant Consent Form</title><meta content="text/html; charset=UTF-8" http-equiv="content-type"></meta></head><body><p>You have received this email because you opted to receive a copy of the Sensibility Testbed Consent Form. Please see <a href="https://docs.google.com/document/d/1tb7mORk4NhqLW4KCGmjFd28EIM289ZI_2JRXWwKp8zk/edit">this </a>link for more information.</p></body></html>]]></string>
+    <string name="sl4a_not_installed">SL4A is not installed. Too bad! Hope the user goes and installs it some day so we can access sensors.</string>
+    <string name="sl4a_not_installed_msg">SL4A is not installed. Please install it from https://code.google.com/p/android-scripting/</string>
 </resources>
