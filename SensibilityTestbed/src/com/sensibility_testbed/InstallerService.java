@@ -157,7 +157,7 @@ public class InstallerService extends ForegroundService {
 
     // Start the Logger used during Installation
     try {
-      initalizeInstallerLogger();
+      initializeInstallerLogger();
     } catch (IOException e) {
       e.printStackTrace();
       installerLogger.log(Level.SEVERE, Common.LOG_EXCEPTION_WRITING_LOG_FILE,
@@ -442,7 +442,7 @@ public class InstallerService extends ForegroundService {
     t.start();
   }
 
-  private void initalizeInstallerLogger() throws IOException {
+  private void initializeInstallerLogger() throws IOException {
     // Make sure the InstallerLogger is only initalized once
     if (installerLogger != null) {
       return;
