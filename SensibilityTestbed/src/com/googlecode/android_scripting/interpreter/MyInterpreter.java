@@ -20,22 +20,22 @@ import java.util.List;
 
 /**
  * Wrapper for the Interpreter class.
- * 
- * Workaround for the default access modifier on the getArguments() method
- * in the Interpreter class
+ *
+ * Workaround for the default access modifier on the getArguments() method in
+ * the Interpreter class
  */
 public class MyInterpreter {
-	private Interpreter interpreter;
+  private Interpreter interpreter;
 
-	public MyInterpreter(Interpreter interpreter){
-		this.interpreter = interpreter;
-	}
+  public MyInterpreter(Interpreter interpreter) {
+    this.interpreter = interpreter;
+  }
 
-	public Interpreter getInterpreter() {
-		return this.interpreter;
-	}
+  public Interpreter getInterpreter() {
+    return this.interpreter;
+  }
 
-	public List<String> getArguments() {
-		return interpreter.getArguments();
-	}
+  public List<String> getArguments() {
+    return interpreter.getArguments();
+  }
 }

@@ -38,7 +38,7 @@ import com.sensibility_testbed.ScriptActivity;
 import com.trilead.ssh2.StreamGobbler;
 
 /***
- * 
+ *
  * Slightly modified version of the Process from SL4A
  *
  */
@@ -118,41 +118,46 @@ public class Process {
 
   public void start(final Runnable shutdownHook) {
     if (isAlive()) {
-      throw new RuntimeException("Attempted to start process that is already running.");
+      throw new RuntimeException(
+          "Attempted to start process that is already running.");
     }
 
     String binaryPath = mBinary.getAbsolutePath();
-/*    Log.v(Common.LOG_TAG, "Executing " + binaryPath + " with arguments " + mArguments + " and with environment "
-        + mEnvironment.toString());*/
+    /*
+     * Log.v(Common.LOG_TAG, "Executing " + binaryPath + " with arguments " +
+     * mArguments + " and with environment " + mEnvironment.toString());
+     */
 
     int[] pid = new int[1];
     String[] argumentsArray = mArguments.toArray(new String[mArguments.size()]);
-    mLog = new File(String.format("%s/%s.log", 
-    		ScriptActivity.seattleInstallDirectory.getAbsolutePath() + "/", getName()));
+    mLog = new File(String.format("%s/%s.log",
+        ScriptActivity.seattleInstallDirectory.getAbsolutePath() + "/",
+        getName()));
 
-    mFd =
-        Exec.createSubprocess(binaryPath, argumentsArray, getEnvironmentArray(),
-            getWorkingDirectory(), pid);
+    mFd = Exec.createSubprocess(binaryPath, argumentsArray,
+        getEnvironmentArray(), getWorkingDirectory(), pid);
     mPid.set(pid[0]);
     mOut = new FileOutputStream(mFd);
     mIn = new StreamGobbler(new FileInputStream(mFd), mLog, DEFAULT_BUFFER_SIZE);
     mStartTime = System.currentTimeMillis();
 
     new Thread(new Runnable() {
+      @Override
       public void run() {
-    	returnValue = Exec.waitFor(mPid.get());
+        returnValue = Exec.waitFor(mPid.get());
         mEndTime = System.currentTimeMillis();
         int pid = mPid.getAndSet(PID_INIT_VALUE);
-        Log.v(Common.LOG_TAG, "Process " + pid + " exited with result code " + returnValue + ".");
+        Log.v(Common.LOG_TAG, "Process " + pid + " exited with result code "
+            + returnValue + ".");
         try {
           mIn.close();
         } catch (IOException e) {
-          Log.e(Common.LOG_TAG, "error closing mIn "+e.getStackTrace());
+          Log.e(Common.LOG_TAG, "error closing mIn " + e.getStackTrace());
         }
         try {
           mOut.close();
         } catch (IOException e) {
-          Log.e(Common.LOG_TAG, "error closing mOut "+ e.getStackTrace());
+          Log.e(Common.LOG_TAG, "error closing mOut " + e.getStackTrace());
         }
         if (shutdownHook != null) {
           shutdownHook.run();
@@ -166,7 +171,8 @@ public class Process {
     for (Entry<String, String> entry : mEnvironment.entrySet()) {
       environmentVariables.add(entry.getKey() + "=" + entry.getValue());
     }
-    String[] environment = environmentVariables.toArray(new String[environmentVariables.size()]);
+    String[] environment = environmentVariables
+        .toArray(new String[environmentVariables.size()]);
     return environment;
   }
 
@@ -180,6 +186,7 @@ public class Process {
   public boolean isAlive() {
     return (mFd != null && mFd.valid()) && mPid.get() != PID_INIT_VALUE;
   }
+
   public String getSdcardPackageDirectory() {
     return null;
   }
@@ -210,7 +217,7 @@ public class Process {
   }
 
   public int getReturnValue() {
-	  return returnValue;
+    return returnValue;
   }
 
   public void setName(String name) {

@@ -35,7 +35,7 @@ import java.io.File;
 import java.util.List;
 
 /***
- * 
+ *
  * Slightly modified version of the ScriptLauncher.java from SL4A.
  *
  */
@@ -45,30 +45,30 @@ public class ScriptLauncher {
     // Utility class.
   }
 
-  public static HtmlActivityTask launchHtmlScript(File script, Service service, Intent intent,
-      InterpreterConfiguration config) {
+  public static HtmlActivityTask launchHtmlScript(File script, Service service,
+      Intent intent, InterpreterConfiguration config) {
     if (!script.exists()) {
       throw new RuntimeException("No such script to launch.");
     }
-    HtmlInterpreter interpreter =
-        (HtmlInterpreter) config.getInterpreterByName(HtmlInterpreter.HTML);
+    HtmlInterpreter interpreter = (HtmlInterpreter) config
+        .getInterpreterByName(HtmlInterpreter.HTML);
     if (interpreter == null) {
       throw new RuntimeException("HtmlInterpreter is not available.");
     }
-    final FacadeManager manager =
-        new FacadeManager(FacadeConfiguration.getSdkLevel(), service, intent,
-            FacadeConfiguration.getFacadeClasses());
-    FutureActivityTaskExecutor executor =
-        ((BaseApplication) service.getApplication()).getTaskExecutor();
-    final HtmlActivityTask task =
-        new HtmlActivityTask(manager, interpreter.getAndroidJsSource(),
-            interpreter.getJsonSource(), script.getAbsolutePath(), true);
+    final FacadeManager manager = new FacadeManager(
+        FacadeConfiguration.getSdkLevel(), service, intent,
+        FacadeConfiguration.getFacadeClasses());
+    FutureActivityTaskExecutor executor = ((BaseApplication) service
+        .getApplication()).getTaskExecutor();
+    final HtmlActivityTask task = new HtmlActivityTask(manager,
+        interpreter.getAndroidJsSource(), interpreter.getJsonSource(),
+        script.getAbsolutePath(), true);
     executor.execute(task);
     return task;
   }
 
-  public static InterpreterProcess launchInterpreter(final AndroidProxy proxy, Intent intent,
-      InterpreterConfiguration config, Runnable shutdownHook) {
+  public static InterpreterProcess launchInterpreter(final AndroidProxy proxy,
+      Intent intent, InterpreterConfiguration config, Runnable shutdownHook) {
     Interpreter interpreter;
     String interpreterName;
     interpreterName = intent.getStringExtra(Constants.EXTRA_INTERPRETER_NAME);
@@ -87,12 +87,14 @@ public class ScriptLauncher {
     return process;
   }
 
-  public static PythonScriptProcess launchScript(File script, InterpreterConfiguration configuration,
-      final AndroidProxy proxy, Runnable shutdownHook, List<String> args) {
+  public static PythonScriptProcess launchScript(File script,
+      InterpreterConfiguration configuration, final AndroidProxy proxy,
+      Runnable shutdownHook, List<String> args) {
     if (!script.exists()) {
       throw new RuntimeException("No such script to launch.");
     }
-    PythonScriptProcess process = new PythonScriptProcess(script, configuration, proxy);
+    PythonScriptProcess process = new PythonScriptProcess(script,
+        configuration, proxy);
     if (shutdownHook == null) {
       process.start(new Runnable() {
         @Override

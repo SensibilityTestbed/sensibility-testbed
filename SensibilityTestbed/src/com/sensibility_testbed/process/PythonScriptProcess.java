@@ -23,7 +23,7 @@ import com.googlecode.android_scripting.interpreter.MyInterpreter;
 import java.io.File;
 
 /***
- * 
+ *
  * Slightly modified version of the PythonScriptProcess
  *
  */
@@ -31,7 +31,8 @@ public class PythonScriptProcess extends InterpreterProcess {
 
   private final File mScript;
 
-  public PythonScriptProcess(File script, InterpreterConfiguration configuration, AndroidProxy proxy) {
+  public PythonScriptProcess(File script,
+      InterpreterConfiguration configuration, AndroidProxy proxy) {
     super(new MyInterpreter(null), proxy);
     mScript = script;
     String scriptName = script.getName();
