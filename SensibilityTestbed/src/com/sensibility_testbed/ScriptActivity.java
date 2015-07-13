@@ -26,6 +26,7 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
+
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
@@ -674,8 +675,7 @@ public class ScriptActivity extends Activity {
   }
 
   // Unpack and set file permission for python files located in res/raw based
-  // off of
-  // Anthony Prieur & Daniel Oppenheim work
+  // off of Anthony Prieur & Daniel Oppenheim work
   // https://code.google.com/p/android-python27/
   private void copyPythonToLocal() {
     String zipPath, zipName;
@@ -719,15 +719,6 @@ public class ScriptActivity extends Activity {
     Log.i(Common.LOG_TAG, Common.LOG_INFO_PYTHON_UNZIP_COMPLETED);
   }
 
-  /*
-   * // check if an app is installed, thanks to //
-   * http://www.grokkingandroid.com/checking-intent-availability/ public static
-   * boolean isMyServiceInstalled(Context ctx, Intent intent) { final
-   * PackageManager mgr = ctx.getPackageManager(); List<ResolveInfo> list =
-   * mgr.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
-   * return list.size() > 0; }
-   */
-
   // check if sl4a is running thanks to:
   // http://stackoverflow.com/questions/7440473/android-how-to-check-if-the-intent-service-is-still-running-or-has-stopped-runni
   private boolean isMyServiceRunning() {
@@ -741,37 +732,21 @@ public class ScriptActivity extends Activity {
     }
     return false;
   }
-
-  // Executed after the activity is started / resumed
-  @Override
-  protected void onStart() {
-    super.onStart();
-    // Load settings
-    settings = getSharedPreferences(SEATTLE_PREFERENCES, MODE_WORLD_WRITEABLE);
-    seattleInstallDirectory = getExternalFilesDir(null);
-
-    isSeattleInstalled = (new File(ScriptActivity.getSeattlePath()
-        + "seattle_repy/", "nmmain.py")).exists(); // calling
-    // isSeattleInstalled() will
-    // NOT work...
-
-    Log.v(Common.LOG_TAG, "Application files will be placed in: "
-        + seattleInstallDirectory.getAbsolutePath());
-
+  
+  // Executed in onStart(), verify that SL4A is installed
+  // Thank you: http://stackoverflow.com/questions/6829187/android-explicit-intent-with-target-component
+  // And: http://stackoverflow.com/questions/2780102/open-another-application-from-your-own-intent/
+  private void checkSL4AInstall() {
     if (!Environment.getExternalStorageState()
         .equals(Environment.MEDIA_MOUNTED)) {
       // External storage device not mounted
       showNotMountedLayout();
     } else {
-      // Let's try SL4A!
-      // Start SL4A
+      // Let's try SL4A! Start SL4A
       // XXX Repeat of code in ScriptService.java!
       Log.v(Common.LOG_TAG, "Creating SL4A Intent....");
       Intent sl4aIntent = new Intent();
-      // Thank you,
-      // http://stackoverflow.com/questions/6829187/android-explicit-intent-with-target-component
-      // and
-      // http://stackoverflow.com/questions/2780102/open-another-application-from-your-own-intent/
+
       sl4aIntent
       .setComponent(ComponentName
           .unflattenFromString("com.googlecode.android_scripting/.activity.ScriptingLayerServiceLauncher"));
@@ -835,11 +810,9 @@ public class ScriptActivity extends Activity {
               runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                  // Python unpacking finished so kill the
-                  // displayed progress bar
+                  // Python unpacking finished so kill the progress bar
                   pythonProgress.dismiss();
-                  // Show dialogue confirming python unpacking
-                  // success
+                  // Show dialogue confirming python unpacking success
                   pythonComplete.create().show();
                 }
               });
@@ -847,16 +820,41 @@ public class ScriptActivity extends Activity {
           }).start();
         }
         // Python installation found
-
         // Python and SL4A installer -> Show main layout
         showFrontendLayout();
       }
     }
   }
 
-  // Executed after the activity is created, calls onStart()
+  // Executed in onStart(), verify Seattle install directories
+  private void checkSeattleInstall() {
+    seattleInstallDirectory = getExternalFilesDir(null);
+
+    // calling isSeattleInstalled() will NOT work...
+    isSeattleInstalled = (new File(ScriptActivity.getSeattlePath()
+        + "seattle_repy/", "nmmain.py")).exists(); 
+
+    Log.v(Common.LOG_TAG, "Application files will be placed in: "
+        + seattleInstallDirectory.getAbsolutePath());
+  }
+
+  // Executed after the activity is started / resumed
+  @Override
+  protected void onStart() {
+    super.onStart();
+
+    // Verify installation for both Seattle and SL4A
+    checkSeattleInstall();
+    checkSL4AInstall();
+  }
+
+  //Executed after the activity is created, calls onStart()
   @Override
   protected void onCreate(Bundle savedInstanceState) {
+    // Load settings
+    settings = getSharedPreferences(SEATTLE_PREFERENCES,
+        MODE_WORLD_WRITEABLE);
+   
     super.onCreate(savedInstanceState);
     this.onStart();
   }
