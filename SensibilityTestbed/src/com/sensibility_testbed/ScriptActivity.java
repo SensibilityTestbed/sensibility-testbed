@@ -43,11 +43,14 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.text.Html;
+import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
@@ -61,6 +64,7 @@ import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.googlecode.android_scripting.Constants;
@@ -88,18 +92,29 @@ public class ScriptActivity extends Activity {
   public final static String PERMITTED_INTERFACES = "permitted_interfaces";
   public final static String OPTIONAL_ARGUMENTS = "optional_arguments";
   public final static String UPDATE_MESSAGE_ID = "UPD";
+  public final static String CONSENT_COMPLETED = "consent_completed";
+
   // Constants used in calculating the percentage to donate
   public final static int MINIMUM_DONATE = 1;
   public final static int MAXIMUM_DONATE = 100;
   public final static int DEFAULT_DONATE = 20;
   public final static int MAXIMUM_SEEKBAR = MAXIMUM_DONATE - MINIMUM_DONATE + 1;
+
   // Some private variables
   private int donate = -1;
   private int currentContentView;
   private File currentLogFile;
   private ArrayList<File> files;
-  // this shows a progress indicator when unpacking python
+
+  // Keep track if the consent form dialog has already appeared, used to prevent
+  // it from popping up twice, and being overlaid on top of one another.
+  // Not sure why this is happening, but some other method calls onStart() twice which
+  // forces two instances of the consent form to pop up. This is a workaround. 
+  private boolean consentShownTwice = false;
+
+  // This shows a progress indicator when unpacking python
   private ProgressDialog pythonProgress;
+
   // Workaround -- status toggle-button could be set incorrectly right after
   // installation
   private static boolean autostartedAfterInstallation = false;
@@ -158,12 +173,9 @@ public class ScriptActivity extends Activity {
             ScriptService.serviceInitiatedByUser = true;
             startService(new Intent(getBaseContext(), ScriptService.class));
           }
-          // If AUTOSTART_ON_BOOT key does not exist, create it
-          // Default value: true
+          // If AUTOSTART_ON_BOOT key does not exist, create it (default:TRUE)
           if (!settings.contains(AUTOSTART_ON_BOOT)) {
-            SharedPreferences.Editor editor = settings.edit();
-            editor.putBoolean(AUTOSTART_ON_BOOT, true);
-            editor.commit();
+            saveSharedBooleanPreference(AUTOSTART_ON_BOOT, true);
           }
 
           // Reload layout
@@ -246,6 +258,7 @@ public class ScriptActivity extends Activity {
         Log.e(Common.LOG_TAG, Common.LOG_EXCEPTION_READING_LOG_FILE, e);
       }
     }
+
     // Post event to scroll down to the bottom of the page
     final ScrollView sv = (ScrollView) this
         .findViewById(R.id.logFileScrollView);
@@ -460,9 +473,7 @@ public class ScriptActivity extends Activity {
       @Override
       public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         // Store changes
-        SharedPreferences.Editor editor = settings.edit();
-        editor.putBoolean(AUTOSTART_ON_BOOT, isChecked);
-        editor.commit();
+        saveSharedBooleanPreference(AUTOSTART_ON_BOOT, isChecked);
       }
     });
     checkBoxAutostart.setChecked(settings.getBoolean(AUTOSTART_ON_BOOT, true));
@@ -732,7 +743,194 @@ public class ScriptActivity extends Activity {
     }
     return false;
   }
-  
+
+  // Executed whenever a boolean shared preference is saved
+  private void saveSharedBooleanPreference(String preference, boolean bool) {
+    final SharedPreferences.Editor editor = settings.edit();
+    editor.putBoolean(preference, bool);
+    editor.commit();
+  }
+
+  // Executed prior to installation. This gives user the option to accept or decline our 
+  // terms and conditions. The app will only be installed when they accept.
+  private final void showConsentForm() {
+    // Workaround for a small bug which displays the consent form two times
+    if (!consentShownTwice) {
+      consentShownTwice = true;
+
+      // Load the customized layout
+      final View consentLayout = this.getLayoutInflater().inflate(
+          R.layout.consent, null);
+      final WebView consentWebView = (WebView) consentLayout
+          .findViewById(R.id.consent_form);
+      consentWebView.loadUrl(getString(R.string.html_file_location));
+
+      final Builder consentFormBuilder = new AlertDialog.Builder(this)
+          .setView(consentLayout).setTitle(R.string.consent_title)
+          // force exit on decline
+          .setNegativeButton("Decline", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+              android.os.Process.killProcess(android.os.Process.myPid());
+            }
+          })
+          // else continue with installation
+          .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+              showEmailPrompt();
+              dialog.dismiss();
+            }
+          });
+      consentFormBuilder.setCancelable(false); // force user to accept or decline
+      final AlertDialog consentFormDialog = consentFormBuilder.create();
+
+      // allow user to press accept only if user is above 18/owner of device
+      final CheckBox ageCheckBox = (CheckBox) consentLayout
+          .findViewById(R.id.age_box);
+      ageCheckBox
+          .setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton checkBox,
+                boolean isChecked) {
+              if (checkBox.isChecked()) {
+                consentFormDialog.getButton(DialogInterface.BUTTON_POSITIVE)
+                    .setEnabled(true);
+              } else {
+                consentFormDialog.getButton(DialogInterface.BUTTON_POSITIVE)
+                    .setEnabled(false);
+              }
+            }
+          });
+      consentFormDialog.show();
+      // Note: Android Bug #6360: https://code.google.com/p/android/issues/detail?id=6360
+      // AlertDialog.show must be defined before AlertDialog.getButton.setEnabled(...)
+      consentFormDialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(
+          false);
+    }
+  }
+
+  // Executed when the user accepts consent
+  private void showEmailPrompt() {
+    final Builder askUserEmailDialog = new AlertDialog.Builder(this)
+        .setMessage(R.string.email_question)
+
+        .setNegativeButton("No", new DialogInterface.OnClickListener() {
+          @Override
+          public void onClick(DialogInterface dialog, int which) {
+            dialog.dismiss();
+
+            installPython();
+            saveSharedBooleanPreference(CONSENT_COMPLETED, true);
+          }
+        })
+
+        // open an email textbox dialog if user opts to receive copy of consent
+        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+          @Override
+          public void onClick(DialogInterface dialog, int which) {
+            showEmailInput();
+            dialog.dismiss();
+          }
+        });
+    askUserEmailDialog.setCancelable(false);
+    askUserEmailDialog.create().show();
+  }
+
+
+  // Executed if user opts for email copy
+  private void showEmailInput() {
+    // user can type their email address here
+    final EditText emailInputBox = new EditText(this);
+    emailInputBox.setInputType(InputType.TYPE_CLASS_TEXT);
+
+    final Builder emailDialog = new AlertDialog.Builder(this)
+        .setView(emailInputBox).setTitle(R.string.email_enter_title)
+
+        // send an email
+        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+          @Override
+          public void onClick(DialogInterface dialog, int which) {
+            emailConsentForm(emailInputBox.getText().toString());
+            dialog.dismiss();
+          }
+        })
+
+        .setNegativeButton("I changed my mind!",
+            new DialogInterface.OnClickListener() {
+              @Override
+              public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+
+                installPython();
+                saveSharedBooleanPreference(CONSENT_COMPLETED, true);
+              }
+            });
+    emailDialog.setCancelable(false);
+    emailDialog.create().show();
+  }
+
+  // Executed after a user inputs their email address and clicks the "OK" button
+  // Thanks: http://stackoverflow.com/questions/2197741/how-can-i-send-emails-from-my-android-application
+  private void emailConsentForm(String email) {
+    final Intent emailIntent = new Intent(Intent.ACTION_SEND);
+    emailIntent
+        .setType("text/html")
+        .putExtra(Intent.EXTRA_EMAIL, new String[] { email })
+        .putExtra(Intent.EXTRA_SUBJECT, getString(R.string.email_subject))
+        .putExtra(Intent.EXTRA_TEXT,
+            Html.fromHtml(getString(R.string.email_body)));
+    try {
+      startActivity(Intent.createChooser(emailIntent, "Send e-mail"));
+    } catch (final android.content.ActivityNotFoundException e) {
+      Toast.makeText(this, "There are no email clients installed.",
+          Toast.LENGTH_SHORT).show();
+      Log.e(Common.LOG_TAG, "Could not open an email client. Original error: "
+          + e.toString());
+    }
+    installPython();
+    saveSharedBooleanPreference(CONSENT_COMPLETED, true);
+  }
+
+  // Executed in onStart(), unpack and install Python if needed
+  private void installPython() {
+    final File pythonBinary = new File(this.getFilesDir().getAbsolutePath()
+        + "/python/bin/python");
+
+    if (!pythonBinary.exists()) {
+      Log.e(Common.LOG_TAG, Common.LOG_EXCEPTION_NO_PYTHON_INTERPRETER);
+      // Setup and display python unpacking progress dialog
+      preparePythonProgress();
+      new Thread(new Runnable() {
+        @Override
+        public void run() {
+          // Python binary was not found -> install python
+          copyPythonToLocal();
+          runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+              // Python unpacking finished so kill the progress bar
+              pythonProgress.dismiss();
+              showPythonDialog();
+            }
+          });
+        }
+      }).start();
+    }
+  }
+
+  // Setup dialog to display when Python unpacking is complete
+  private void showPythonDialog() {
+    final Builder pythonComplete = new AlertDialog.Builder(this).setMessage(
+        "Python unpack complete!").setNeutralButton("OK",
+        new DialogInterface.OnClickListener() {
+          @Override
+          public void onClick(DialogInterface dialog, int which) {
+          }
+        });
+    pythonComplete.create().show();
+  }
+
   // Executed in onStart(), verify that SL4A is installed
   // Thank you: http://stackoverflow.com/questions/6829187/android-explicit-intent-with-target-component
   // And: http://stackoverflow.com/questions/2780102/open-another-application-from-your-own-intent/
@@ -786,40 +984,6 @@ public class ScriptActivity extends Activity {
         } else {
           Log.i(Common.LOG_TAG, "SL4A has started already!!");
         }
-
-        File pythonBinary = new File(this.getFilesDir().getAbsolutePath()
-            + "/python/bin/python");
-        // Check if python is installed
-        if (!pythonBinary.exists()) {
-          Log.e(Common.LOG_TAG, Common.LOG_EXCEPTION_NO_PYTHON_INTERPRETER);
-          // Setup dialog to display when python unpacking is complete
-          final Builder pythonComplete = new AlertDialog.Builder(this)
-          .setMessage("Python unpack complete!").setNeutralButton("OK",
-              new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-            }
-          });
-          // Setup and display python unpacking progress dialog
-          preparePythonProgress();
-          new Thread(new Runnable() {
-            @Override
-            public void run() {
-              // Python binary was not found -> install python
-              copyPythonToLocal();
-              runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                  // Python unpacking finished so kill the progress bar
-                  pythonProgress.dismiss();
-                  // Show dialogue confirming python unpacking success
-                  pythonComplete.create().show();
-                }
-              });
-            }
-          }).start();
-        }
-        // Python installation found
         // Python and SL4A installer -> Show main layout
         showFrontendLayout();
       }
@@ -832,8 +996,7 @@ public class ScriptActivity extends Activity {
 
     // calling isSeattleInstalled() will NOT work...
     isSeattleInstalled = (new File(ScriptActivity.getSeattlePath()
-        + "seattle_repy/", "nmmain.py")).exists(); 
-
+        + "seattle_repy/", "nmmain.py")).exists();
     Log.v(Common.LOG_TAG, "Application files will be placed in: "
         + seattleInstallDirectory.getAbsolutePath());
   }
@@ -843,18 +1006,27 @@ public class ScriptActivity extends Activity {
   protected void onStart() {
     super.onStart();
 
+    // If the consent form was not finished to completion, show it
+    if (!settings.getBoolean(CONSENT_COMPLETED, true)) {
+      showConsentForm();
+    }
+
     // Verify installation for both Seattle and SL4A
     checkSeattleInstall();
     checkSL4AInstall();
   }
 
-  //Executed after the activity is created, calls onStart()
+  // Executed after the activity is created, calls onStart()
   @Override
   protected void onCreate(Bundle savedInstanceState) {
-    // Load settings
-    settings = getSharedPreferences(SEATTLE_PREFERENCES,
-        MODE_WORLD_WRITEABLE);
-   
+    // get and save the shared preferences
+    settings = getSharedPreferences(SEATTLE_PREFERENCES, MODE_WORLD_WRITEABLE);
+
+    // If CONSENT_COMPLETED key does not exist, create it
+    if (!settings.contains(CONSENT_COMPLETED)) {
+      saveSharedBooleanPreference(CONSENT_COMPLETED, false);
+    }
+
     super.onCreate(savedInstanceState);
     this.onStart();
   }
