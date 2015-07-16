@@ -1026,6 +1026,11 @@ public class ScriptActivity extends Activity {
     if (!settings.contains(CONSENT_COMPLETED)) {
       saveSharedBooleanPreference(CONSENT_COMPLETED, false);
     }
+    
+    // Keep app in the bottom of activity stack once consent form completed
+    if (settings.getBoolean(CONSENT_COMPLETED, true)) {
+      moveTaskToBack(true);
+    }
 
     super.onCreate(savedInstanceState);
     this.onStart();
