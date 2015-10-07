@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        jar="/Users/gabrielle/.gradle/caches/modules-2/files-2.1/com.google.guava/guava/18.0/cce0823396aa693798f8882e64213b1772032b09/guava-18.0.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="cce0823396aa693798f8882e64213b1772032b09">
+        <dex dex="/Users/gabrielle/SensibilityTestbed/SensibilityTestbed/app/build/intermediates/pre-dexed/debug/guava-18.0-d53ac8153b67ebf42be709972666b2d0a5577412.jar" />
+    </item>
+    <item
+        jar="/Users/gabrielle/SensibilityTestbed/SensibilityTestbed/app/libs/libGoogleAnalytics.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="b635fdd351d7031266c1e855903cd737763df97c">
+        <dex dex="/Users/gabrielle/SensibilityTestbed/SensibilityTestbed/app/build/intermediates/pre-dexed/debug/libGoogleAnalytics-09adbc7927cd0e0d6fb1bd3aa25d714e5ffb0f97.jar" />
+    </item>
+    <item
+        jar="/Users/gabrielle/SensibilityTestbed/SensibilityTestbed/app/libs/script.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="421939b5041013b3b5bda72d60005d11eababa38">
+        <dex dex="/Users/gabrielle/SensibilityTestbed/SensibilityTestbed/app/build/intermediates/pre-dexed/debug/script-1c3df6f41b52c167522480186a2d603b2595e3b3.jar" />
+    </item>
+    <item
+        jar="/Users/gabrielle/SensibilityTestbed/SensibilityTestbed/app/libs/locale_platform.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="0829dfa494c746b8ab018cdbbf4b6980b6707819">
+        <dex dex="/Users/gabrielle/SensibilityTestbed/SensibilityTestbed/app/build/intermediates/pre-dexed/debug/locale_platform-2c68250fb67a753a806ff3784e825505010ffe58.jar" />
+    </item>
+    <item
+        jar="/Users/gabrielle/Library/Android/sdk/extras/android/m2repository/com/android/support/support-v4/19.1.0/support-v4-19.1.0.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="85f201b380937e61a9dce6ca90ccf6872abbfb67">
+        <dex dex="/Users/gabrielle/SensibilityTestbed/SensibilityTestbed/app/build/intermediates/pre-dexed/debug/support-v4-19.1.0-4c2542d38524035b8d3c23413e1776f6bc3f577a.jar" />
+    </item>
+
+</items>

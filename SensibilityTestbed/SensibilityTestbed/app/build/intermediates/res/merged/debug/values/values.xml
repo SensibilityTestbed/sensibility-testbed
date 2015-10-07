@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- From: file:/Users/gabrielle/SensibilityTestbed/SensibilityTestbed/app/src/main/res/values/strings.xml -->
+    <eat-comment/>
+    <string name="Install">Install</string>
+    <string name="about">About</string>
+    <string name="age">I am over the age of 18 and the owner of the device that will run the Sensibility Testbed application.</string>
+    <string name="app_name">Sensibility Testbed</string>
+    <string name="autostart">Autostart on boot</string>
+    <string name="availablelogs">Available log files:</string>
+    <string name="back">Back</string>
+    <string name="change_status">Change status</string>
+    <string name="consent_title">Device Owner’s Informed Consent / Agreement to Participate</string>
+    <string name="email_body"><![CDATA[<html><head><title>Updated: Participant Consent Form</title><meta content="text/html; charset=UTF-8" http-equiv="content-type"></meta></head><body><p>You have received this email because you opted to receive a copy of the Sensibility Testbed Consent Form. Please see <a href="https://docs.google.com/document/d/1tb7mORk4NhqLW4KCGmjFd28EIM289ZI_2JRXWwKp8zk/edit">this </a>link for more information.</p></body></html>]]></string>
+    <string name="email_enter_title">Please enter your email address below:</string>
+    <string name="email_question">Would you like to receive an email copy of the consent form?</string>
+    <string name="email_subject">Sensibility Testbed Consent Form</string>
+    <string name="html_file_location">file:///android_asset/updatedParticipantconsentform.html</string>
+    <string name="install_path">Install Sensibility Testbed to:</string>
+    <string name="installer_err_log">Installer stderr</string>
+    <string name="installer_err_log_placeholder">place for stderr of the installer</string>
+    <string name="installer_log">Installer stdout</string>
+    <string name="installer_log_placeholder">place for stdout of the installer</string>
+    <string name="installing">Sensibility Testbed is being installed. Please wait...</string>
+    <string name="loading">Sensibility Testbed running...</string>
+    <string name="not_installed">Sensibility Testbed could not be found on your handset. Press the "Install" button to install.</string>
+    <string name="not_mounted">Removable Storage Device is not present or is not mounted correctly. Please remount the device and restart the application.</string>
+    <string name="refresh">Refresh</string>
+    <string name="resource_donate">Maximum percentage of system resources to donate</string>
+    <string name="srvc_install_config">Setting up initial configurations...</string>
+    <string name="srvc_install_copy">Copying files...</string>
+    <string name="srvc_install_name">Sensibility Testbed Installer</string>
+    <string name="srvc_install_start">Sensibility Testbed Installer started</string>
+    <string name="start">Start</string>
+    <string name="startup_delay">Autostart delay (seconds): </string>
+    <string name="stop">Stop</string>
+    <string name="thank_you">Thank you for making the world a better place by installing Sensibility Testbed!</string>
+    <string name="toggleoff">Start Sensibility Testbed</string>
+    <string name="toggleon">Stop Sensibility Testbed</string>
+    <string name="uninstall_seattle">Remove Sensibility Testbed\'s local files</string>
+    <string name="view_log">View log</string>
+</resources>
