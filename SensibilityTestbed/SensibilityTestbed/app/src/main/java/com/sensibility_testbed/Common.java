@@ -11,7 +11,8 @@ public final class Common {
   public static final String[] TRUSTED_DOWNLOAD_HOSTNAMES_WHITELIST = {
       "seattleclearinghouse.poly.edu", "betaseattleclearinghouse.poly.edu",
       "sensibilityclearinghouse.poly.edu", "blackbox.poly.edu",
-      "custombuilder.poly.edu" };
+      "custombuilder.poly.edu", "alpha-ch.poly.edu", "alpha-cib.poly.edu", 
+      "testclearinghouse.poly.edu", "sensibilitytestclearinghouse.poly.edu"};
 
   // Embedded Python Interpreter Zip Names
   // 2.7
