@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="raw">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/SensibilityTestbed/res/raw/python_extras_27.zip!/" />
+      <root url="jar://$PROJECT_DIR$/SensibilityTestbed/res/raw/python_27.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

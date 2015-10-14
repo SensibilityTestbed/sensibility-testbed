@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="libs">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/SensibilityTestbed/libs/guava-r06.jar!/" />
+      <root url="jar://$PROJECT_DIR$/SensibilityTestbed/libs/locale_platform.jar!/" />
+      <root url="jar://$PROJECT_DIR$/SensibilityTestbed/libs/script.jar!/" />
+      <root url="jar://$PROJECT_DIR$/SensibilityTestbed/libs/android-support-v4.jar!/" />
+      <root url="jar://$PROJECT_DIR$/SensibilityTestbed/libs/libGoogleAnalytics.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
